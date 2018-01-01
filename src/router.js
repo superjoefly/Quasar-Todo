@@ -25,7 +25,7 @@ export default new VueRouter({
   scrollBehavior: () => ({ y: 0 }),
 
   routes: [
-    { path: '/list', component: load('List') },
+    { path: '/', component: load('List') },
     { path: '/incomplete', component: load('Incomplete') },
     { path: '/complete', component: load('Complete') },
 
