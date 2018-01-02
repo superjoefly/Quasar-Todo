@@ -15,6 +15,7 @@
     <!-- Expandable Button -->
     <q-fab class="fixed" style="right: 18px; top: 120px;" color="secondary" glossy icon="keyboard_arrow_left" direction="left">
       <q-fab-action color="secondary" icon="alarm" @click="showTime('bottom')" />
+      <q-fab-action color="secondary" icon="note" @click="getNotes()" />
     </q-fab>
 
 
@@ -86,12 +87,15 @@
       isError: false,
       position: 'bottom',
       today,
-      currentItem: null,
+      currentIndex: null,
       date: today
     }),
     computed: {
       savedList () {
         return JSON.parse(localStorage.getItem('quasar-saved-list'))
+      },
+      currentItem () {
+        return this.items[this.currentIndex]
       }
     },
     methods: {
@@ -120,12 +124,13 @@
           this.saveList()
           this.reset()
         }
+        this.saveList()
       },
       selectItem (index) {
         // Assign current index to data-prop
-        this.currentItem = index
-        if (this.items[this.currentItem].reminder) {
-          this.date = this.items[this.currentItem].reminder
+        this.currentIndex = index
+        if (this.currentItem.reminder) {
+          this.date = this.currentItem.reminder
         }
         else {
           this.date = null
@@ -136,8 +141,9 @@
         this.items.splice(index, 1)
         this.saveList()
       },
-      editItem () {
-
+      editItem (index) {
+        this.$refs.popover[index].close()
+        alert('Edit Item')
       },
       setReminder (index) {
         this.$nextTick(() => {
@@ -147,13 +153,16 @@
       setDate () {
         this.$refs.calendarModal.close()
         // Attach date to specific item using index
-        this.items[this.currentItem].reminder = this.date
+        this.currentItem.reminder = this.date
         // Reset date data-prop
         this.date = null
         // Save list
         this.saveList()
         // Check items for reminder prop
         console.log(this.items)
+      },
+      getNotes() {
+        alert('Get Notes')
       },
       toggleCompleted (index) {
         let clickedItem = this.items[index]
