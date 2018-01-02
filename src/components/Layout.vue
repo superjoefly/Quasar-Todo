@@ -50,14 +50,14 @@
       <!-- sub-routes get injected here: -->
       <router-view />
       <!-- Footer -->
-      <!-- <q-toolbar slot="footer" style="padding: 0px;">
+      <q-toolbar slot="footer" style="padding: 0px;">
         <q-search inverted v-model="search" style="box-shadow: none;" />
-      </q-toolbar> -->
-      <q-toolbar slot="footer">
+      </q-toolbar>
+      <!-- <q-toolbar slot="footer">
         <q-toolbar-title>
           NewUp Developments
         </q-toolbar-title>
-      </q-toolbar>
+      </q-toolbar> -->
     </q-layout>
 
   </div>
