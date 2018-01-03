@@ -25,7 +25,7 @@
 
       <q-transition appear group enter="slideInRight" leave="slideOutLeft">
 
-        <q-item v-for="(item, index) in items" :key="index" @click="toggleCompleted(index)" style="border-bottom: 1px solid #f5f3f5;">
+        <q-item v-for="(item, index) in items" :key="index" @click="toggleCompleted(index)" :class="{striped: isOdd(index)}">
           <!-- <q-item-side avatar="statics/boy-avatar.png" /> -->
           <q-item-side>
             <q-checkbox v-model="item.completed" @click.native="saveList" />
@@ -56,16 +56,24 @@
 
 
     <!-- Time Modal -->
-    <q-modal ref="timeModal" :position="position" :content-css="{padding: '20px'}">
+    <q-modal ref="timeModal" position="bottom" :content-css="{padding: '20px'}">
       <p>Clock</p>
       <q-btn color="green" @click="$refs.timeModal.close()">Close</q-btn>
     </q-modal>
 
     <!-- Calendar Modal -->
-    <q-modal ref="calendarModal" minimized :content-css="{padding: '50px'}">
+    <q-modal ref="calendarModal" minimized position="left" :content-css="{padding: '50px', width: '75%'}">
       <!-- Calendar -->
       <q-datetime color="secondary" v-model="date" type="datetime" float-label="Date and Time" />
       <q-btn color="green" @click="setDate">Close</q-btn>
+    </q-modal>
+
+    <!-- Edit Item Modal -->
+    <q-modal ref="editItemModal" minimized position="right" :content-css="{padding: '25px', width: '100%'}">
+      <!-- Textarea -->
+      <q-input v-model="itemEdit" float-label="Edit Item" ref="edit" @keyup.enter="applyEdit" />
+      <q-btn color="green" @click="applyEdit">Close</q-btn>
+      <q-btn color="orange" @click="cancelEdit">Cancel</q-btn>
     </q-modal>
 
 
@@ -85,10 +93,10 @@
       item: { label: '', reminder: '', completed: false },
       items: [],
       isError: false,
-      position: 'bottom',
       today,
-      currentIndex: null,
-      date: today
+      currentIndex: 0,
+      date: today,
+      itemEdit: ''
     }),
     computed: {
       savedList () {
@@ -99,6 +107,11 @@
       }
     },
     methods: {
+      isOdd (index) {
+        if (index % 2 === 0) {
+          return true
+        }
+      },
       getList () {
         let savedList = this.savedList
         if (savedList) {
@@ -142,11 +155,26 @@
         this.saveList()
       },
       editItem (index) {
+        this.$refs.editItemModal.open()
         this.$refs.popover[index].close()
-        alert('Edit Item')
+        // Autofocus input field
+        this.$nextTick(() => this.$refs.edit.focus())
+      },
+      applyEdit () {
+        if (this.itemEdit !== '') {
+          this.currentItem.label = this.itemEdit
+          this.itemEdit = ''
+          this.saveList()
+        }
+        this.$refs.editItemModal.close()
+      },
+      cancelEdit () {
+        this.$refs.editItemModal.close()
+        this.itemEdit = ''
       },
       setReminder (index) {
         this.$nextTick(() => {
+          this.$refs.popover[index].close()
           this.$refs.calendarModal.open()
         })
       },
@@ -161,7 +189,7 @@
         // Check items for reminder prop
         console.log(this.items)
       },
-      getNotes() {
+      getNotes () {
         alert('Get Notes')
       },
       toggleCompleted (index) {
@@ -211,10 +239,13 @@
     max-width 100%
     overflow: hidden
 
-  .q-item-icon:hover
-    color $orange
+  // .q-item-icon:hover
+  //   color $orange
 
   @media all and (min-width: 600px)
     .q-btn
       margin 5px
+
+  .striped
+    background-color #f5f5f5
 </style>
