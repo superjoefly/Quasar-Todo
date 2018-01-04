@@ -14,41 +14,31 @@
           <q-icon name="menu" />
         </q-btn> -->
       </q-toolbar>
-      <!-- Navigation -->
-      <!-- <q-tabs slot="navigation">
-        <q-route-tab slot="title" icon="list" to="/" replace label="List" hide="label" />
-        <q-route-tab slot="title" icon="!!" to="/incomplete" replace label="Incomplete" hide="label" />
-        <q-route-tab slot="title" icon="check" to="/complete" replace label="Completed" hide="label" />
-        <q-route-tab slot="title" icon="input" to="/" replace label="Drawer" />
-      </q-tabs> -->
-      <!-- Left Side Panel -->
-      <!-- <div slot="left">
-        <q-list no-border link inset-separator>
-          <q-list-header>Essential Links</q-list-header>
-          <q-side-link item to="/docs">
-            <q-item-side icon="school" />
-            <q-item-main label="Docs" sublabel="quasar-framework.org" />
-          </q-side-link>
-          <q-side-link item to="/forum">
-            <q-item-side icon="record_voice_over" />
-            <q-item-main label="Forum" sublabel="forum.quasar-framework.org" />
-          </q-side-link>
-          <q-side-link item to="/chat">
-            <q-item-side icon="chat" />
-            <q-item-main label="Gitter Channel" sublabel="Quasar Lobby" />
-          </q-side-link>
-          <q-side-link item to="/twitter">
-            <q-item-side icon="rss feed" />
-            <q-item-main label="Twitter" sublabel="@quasarframework" />
-          </q-side-link>
-        </q-list>
-      </div> -->
-      <!-- Right Side Panel -->
-      <!-- <div slot="right">
-        Right Side of Layout
-      </div> -->
-      <!-- sub-routes get injected here: -->
+
       <router-view />
+
+      <!-- Fixed Floating Point Button -->
+      <q-fixed-position corner="bottom-right" :offset="[18, 18]" style="z-index: 1">
+        <q-fab color="secondary" glossy icon="keyboard_arrow_left" direction="left" ref="fab">
+          <q-fab-action color="secondary" icon="alarm" @click="showTime" title="Clock" />
+          <q-fab-action color="secondary" icon="note" @click="openMemo" title="Memo" />
+        </q-fab>
+      </q-fixed-position>
+
+      <!-- Memo Modal -->
+      <q-modal ref="memoModal" minimized :content-css="{padding: '25px'}">
+        <!-- Textarea -->
+        <q-input v-model="memo" type="textarea" float-label="Memo" :max-height="100" :min-rows="7" />
+        <q-btn color="yellow-8" @click="saveMemo">Save</q-btn>
+        <q-btn color="secondary" @click="$refs.memoModal.close()">Close</q-btn>
+      </q-modal>
+
+      <!-- Time Modal -->
+      <q-modal ref="timeModal" position="bottom" :content-css="{padding: '20px'}">
+        <p>Clock</p>
+        <q-btn color="green" @click="$refs.timeModal.close()">Close</q-btn>
+      </q-modal>
+
       <!-- Footer -->
       <q-toolbar slot="footer" style="padding: 0px;">
         <q-search inverted v-model="search" style="box-shadow: none;" />
@@ -64,16 +54,29 @@
 </template>
 
 <script>
-  import { QLayout, QToolbar, QToolbarTitle, QBtn, QIcon, QTabs, QRouteTab, QList, QListHeader, QSideLink, QItemSide, QItemMain, QSearch } from 'quasar'
+  import { QLayout, QToolbar, QToolbarTitle, QBtn, QIcon, QTabs, QRouteTab, QList, QListHeader, QSideLink, QItemSide, QItemMain, QSearch, QFixedPosition, QFab, QFabAction, QModal, QInput } from 'quasar'
   export default {
     components: {
-      QLayout, QToolbar, QToolbarTitle, QBtn, QIcon, QTabs, QRouteTab, QList, QListHeader, QSideLink, QItemSide, QItemMain, QSearch
+      QLayout, QToolbar, QToolbarTitle, QBtn, QIcon, QTabs, QRouteTab, QList, QListHeader, QSideLink, QItemSide, QItemMain, QSearch, QFixedPosition, QFab, QFabAction, QModal, QInput
     },
     data: () => ({
-      search: ''
+      search: '',
+      memo: ''
     }),
     methods: {
-
+      openMemo () {
+        this.memo = localStorage.getItem('q-saved-memo')
+        this.$refs.memoModal.open()
+      },
+      saveMemo () {
+        localStorage.setItem('q-saved-memo', this.memo)
+        this.$refs.memoModal.close()
+      },
+      showTime () {
+        this.$nextTick(() => {
+          this.$refs.timeModal.open()
+        })
+      }
     },
     computed: {
 

@@ -1,11 +1,23 @@
 <template>
-  <!-- <q-pull-to-refresh :handler="refresh"> -->
+  <q-pull-to-refresh :handler="refresh" refresh-message="Updating...">
     <div class="container layout-padding">
       <!-- Row For Buttons -->
       <div class="row justify-center">
-        <q-btn color="secondary" glossy @click="showAll">All Items</q-btn>
-        <q-btn color="secondary" glossy @click="showCompleted">Completed</q-btn>
-        <q-btn color="secondary" glossy @click="showIncomplete">Incomplete</q-btn>
+        <q-btn color="secondary" glossy @click="showAll">
+          <q-icon name="list" />
+          &nbsp;
+          <span class="gt-sm">All Items</span>
+        </q-btn>
+        <q-btn color="secondary" glossy @click="showCompleted">
+          <q-icon name="done_all" />
+          &nbsp;
+          <span class="gt-sm">Completed</span>
+        </q-btn>
+        <q-btn color="secondary" glossy @click="showIncomplete">
+          <q-icon name="error_outline" />
+          &nbsp;
+          <span class="gt-sm">Incomplete</span>
+        </q-btn>
       </div>
 
       <!-- Input Field -->
@@ -49,13 +61,6 @@
         </q-transition>
       </q-list>
 
-
-      <!-- Time Modal -->
-      <q-modal ref="timeModal" position="bottom" :content-css="{padding: '20px'}">
-        <p>Clock</p>
-        <q-btn color="green" @click="$refs.timeModal.close()">Close</q-btn>
-      </q-modal>
-
       <!-- Calendar Modal -->
       <q-modal ref="calendarModal" minimized position="left" :content-css="{padding: '50px', width: '75%'}">
         <!-- Calendar -->
@@ -71,28 +76,12 @@
         <q-btn color="orange" @click="cancelEdit">Cancel</q-btn>
       </q-modal>
 
-      <!-- Memo Modal -->
-      <q-modal ref="memoModal" minimized :content-css="{padding: '25px'}">
-        <!-- Textarea -->
-        <q-input v-model="memo" type="textarea" float-label="Memo" :max-height="100" :min-rows="7" />
-        <q-btn color="yellow-8" @click="saveMemo">Save</q-btn>
-        <q-btn color="secondary" @click="$refs.memoModal.close()">Close</q-btn>
-      </q-modal>
-
-
-      <!-- Fixed Floating Point Button -->
-      <q-fixed-position corner="bottom-right" :offset="[18, 18]">
-        <q-fab color="secondary" glossy icon="keyboard_arrow_left" direction="left" ref="fab">
-          <q-fab-action color="secondary" icon="alarm" @click="showTime" title="Clock" />
-          <q-fab-action color="secondary" icon="note" @click="openMemo()" title="Memo" />
-        </q-fab>
-      </q-fixed-position>
     </div>
-  <!-- </q-pull-to-refresh> -->
+  </q-pull-to-refresh>
 </template>
 
 <script>
-  import { QInput, QList, QItem, QItemSide, QItemMain, QPopover, QChip, QItemTile, QTransition, QCheckbox, QListHeader, QSideLink, QBtn, QIcon, QFab, QFabAction, QModal, QDatetime, QPullToRefresh, QFixedPosition } from 'quasar'
+  import { QInput, QList, QItem, QItemSide, QItemMain, QPopover, QChip, QItemTile, QTransition, QCheckbox, QListHeader, QSideLink, QBtn, QIcon, QFab, QFabAction, QModal, QDatetime, QPullToRefresh, QFixedPosition, Toast } from 'quasar'
 
   export default {
     components: {
@@ -104,13 +93,9 @@
       isError: false,
       date: new Date(),
       itemEdit: '',
-      memo: '',
       selectedItem: {}
     }),
     computed: {
-      savedList () {
-        return JSON.parse(localStorage.getItem('q-saved-list'))
-      }
     },
     methods: {
       isOdd (index) {
@@ -118,8 +103,11 @@
           return true
         }
       },
+      savedList () {
+        return JSON.parse(localStorage.getItem('q-saved-list'))
+      },
       getList () {
-        let savedList = this.savedList
+        let savedList = this.savedList()
         if (savedList) {
           this.items = savedList
         }
@@ -143,7 +131,6 @@
           this.saveList()
           this.reset()
         }
-        this.saveList()
       },
       selectItem (index) {
         this.selectedItem = this.items[index]
@@ -193,49 +180,44 @@
         // Save list
         this.saveList()
       },
-      openMemo () {
-        this.memo = localStorage.getItem('q-saved-memo')
-        this.$refs.memoModal.open()
-      },
-      saveMemo () {
-        localStorage.setItem('q-saved-memo', this.memo)
-        this.$refs.memoModal.close()
-      },
       toggleCompleted (index) {
         let clickedItem = this.items[index]
         clickedItem.completed ? clickedItem.completed = false : clickedItem.completed = true
         this.saveList()
       },
       showAll () {
-        this.items = this.savedList
+        this.items = this.savedList()
       },
       showCompleted () {
-        let completed = []
-        this.savedList.filter(function (item) {
+        let completedItems = []
+        this.savedList().filter(function (item) {
           if (item.completed) {
-            completed.push(item)
+            completedItems.push(item)
           }
         })
-        this.items = completed
+        this.items = completedItems
       },
       showIncomplete () {
-        let incomplete = []
-        this.savedList.filter(function (item) {
+        let incompleteItems = []
+        this.savedList().filter(function (item) {
           if (!item.completed) {
-            incomplete.push(item)
+            incompleteItems.push(item)
           }
         })
-        this.items = incomplete
-      },
-      showTime () {
-        this.$nextTick(() => {
-          this.$refs.timeModal.open()
-        })
+        this.items = incompleteItems
       },
       refresh (done) {
         setTimeout(() => {
           done()
+          this.saveList()
           this.getList()
+          Toast.create({
+            html: 'Up To Date!',
+            icon: 'check',
+            timeout: 3000,
+            color: 'green',
+            bgColor: '#eaffe8'
+          })
         }, 1000)
         console.log('refreshing!')
       }
@@ -257,10 +239,11 @@
   // .q-item-icon:hover
   //   color $orange
 
-  @media all and (min-width: 600px)
-    .q-btn
-      margin 5px
+  .q-btn
+      margin 0px 10px 0px 10px
+
 
   .striped
     background-color #f5f5f5
+
 </style>
