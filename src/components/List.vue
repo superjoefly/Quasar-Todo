@@ -14,8 +14,8 @@
 
     <!-- Expandable Button -->
     <q-fab class="fixed" style="right: 18px; top: 120px;" color="secondary" glossy icon="keyboard_arrow_left" direction="left">
-      <q-fab-action color="secondary" icon="alarm" @click="showTime('bottom')" />
-      <q-fab-action color="secondary" icon="note" @click="getNotes()" />
+      <q-fab-action color="secondary" icon="alarm" @click="showTime" title="Clock" />
+      <q-fab-action color="secondary" icon="note" @click="openMemo()" title="Memo" />
     </q-fab>
 
 
@@ -76,6 +76,14 @@
       <q-btn color="orange" @click="cancelEdit">Cancel</q-btn>
     </q-modal>
 
+    <!-- Memo Modal -->
+    <q-modal ref="memoModal" minimized :content-css="{padding: '25px'}">
+      <!-- Textarea -->
+      <q-input v-model="memo" type="textarea" float-label="Memo" :max-height="100" :min-rows="10" />
+      <q-btn color="yellow-8" @click="saveMemo">Save</q-btn>
+      <q-btn color="secondary" @click="$refs.memoModal.close()">Close</q-btn>
+    </q-modal>
+
 
   </div>
 </template>
@@ -83,27 +91,22 @@
 <script>
   import { QInput, QList, QItem, QItemSide, QItemMain, QPopover, QChip, QItemTile, QTransition, QCheckbox, QListHeader, QSideLink, QBtn, QIcon, QFab, QFabAction, QModal, QDatetime } from 'quasar'
 
-  const today = new Date()
-
   export default {
     components: {
       QInput, QList, QItem, QItemSide, QItemMain, QPopover, QChip, QItemTile, QTransition, QCheckbox, QListHeader, QSideLink, QBtn, QIcon, QFab, QFabAction, QModal, QDatetime
     },
     data: () => ({
-      item: { label: '', reminder: '', completed: false },
+      item: { label: '', reminder: '', notes: '', completed: false },
       items: [],
       isError: false,
-      today,
-      currentIndex: 0,
-      date: today,
-      itemEdit: ''
+      date: new Date(),
+      itemEdit: '',
+      memo: '',
+      selectedItem: {}
     }),
     computed: {
       savedList () {
-        return JSON.parse(localStorage.getItem('quasar-saved-list'))
-      },
-      currentItem () {
-        return this.items[this.currentIndex]
+        return JSON.parse(localStorage.getItem('q-saved-list'))
       }
     },
     methods: {
@@ -122,7 +125,7 @@
         }
       },
       saveList () {
-        localStorage.setItem('quasar-saved-list', JSON.stringify(this.items))
+        localStorage.setItem('q-saved-list', JSON.stringify(this.items))
       },
       reset () {
         this.item = { label: '', completed: false }
@@ -140,10 +143,10 @@
         this.saveList()
       },
       selectItem (index) {
-        // Assign current index to data-prop
-        this.currentIndex = index
-        if (this.currentItem.reminder) {
-          this.date = this.currentItem.reminder
+        this.selectedItem = this.items[index]
+        console.log(this.selectedItem)
+        if (this.selectedItem.reminder) {
+          this.date = this.selectedItem.reminder
         }
         else {
           this.date = null
@@ -162,7 +165,7 @@
       },
       applyEdit () {
         if (this.itemEdit !== '') {
-          this.currentItem.label = this.itemEdit
+          this.selectedItem.label = this.itemEdit
           this.itemEdit = ''
           this.saveList()
         }
@@ -180,17 +183,20 @@
       },
       setDate () {
         this.$refs.calendarModal.close()
-        // Attach date to specific item using index
-        this.currentItem.reminder = this.date
+        // Attach date to selected item using index
+        this.selectedItem.reminder = this.date
         // Reset date data-prop
         this.date = null
         // Save list
         this.saveList()
-        // Check items for reminder prop
-        console.log(this.items)
       },
-      getNotes () {
-        alert('Get Notes')
+      openMemo () {
+        this.memo = localStorage.getItem('q-saved-memo')
+        this.$refs.memoModal.open()
+      },
+      saveMemo () {
+        localStorage.setItem('q-saved-memo', this.memo)
+        this.$refs.memoModal.close()
       },
       toggleCompleted (index) {
         let clickedItem = this.items[index]
@@ -218,8 +224,7 @@
         })
         this.items = incomplete
       },
-      showTime (position) {
-        this.position = position
+      showTime () {
         this.$nextTick(() => {
           this.$refs.timeModal.open()
         })
