@@ -1,99 +1,102 @@
 <template>
-  <div class="container">
-    <!-- Row For Buttons -->
-    <div class="row justify-center" style="padding-top: 20px;">
-      <q-btn color="secondary" glossy @click="showAll">All Items</q-btn>
-      <q-btn color="secondary" glossy @click="showCompleted">Completed</q-btn>
-      <q-btn color="secondary" glossy @click="showIncomplete">Incomplete</q-btn>
+  <!-- <q-pull-to-refresh :handler="refresh"> -->
+    <div class="container layout-padding">
+      <!-- Row For Buttons -->
+      <div class="row justify-center">
+        <q-btn color="secondary" glossy @click="showAll">All Items</q-btn>
+        <q-btn color="secondary" glossy @click="showCompleted">Completed</q-btn>
+        <q-btn color="secondary" glossy @click="showIncomplete">Incomplete</q-btn>
+      </div>
+
+      <!-- Input Field -->
+      <div class="layout-padding">
+        <q-input v-model="item.label" float-label="Add an Item" clearable @keyup.enter="addItem" :error="isError" @blur="reset" />
+      </div>
+
+
+      <!-- Items List -->
+      <q-list no-border>
+        <q-list-header>My List:</q-list-header>
+
+        <q-transition appear group enter="slideInRight" leave="slideOutLeft">
+
+          <q-item v-for="(item, index) in items" :key="index" @click="toggleCompleted(index)" :class="{striped: isOdd(index)}">
+            <!-- <q-item-side avatar="statics/boy-avatar.png" /> -->
+            <q-item-side>
+              <q-checkbox v-model="item.completed" @click.native="saveList" />
+            </q-item-side>
+            <q-item-main :label="item.label" />
+
+            <!-- <q-item-side right icon="close" color="primary" @click.stop="removeItem(index)" /> -->
+
+            <q-item-side right icon="more_vert" @click="selectItem(index)">
+              <q-popover ref="popover">
+                <q-list link separator>
+                  <q-item @click="removeItem(index)">
+                    <q-item-main label="Delete" />
+                  </q-item>
+                  <q-item @click="editItem(index)">
+                    <q-item-main label="Edit" />
+                  </q-item>
+                  <q-item @click="setReminder(index)">
+                    <q-item-main label="Reminder" />
+                  </q-item>
+                </q-list>
+              </q-popover>
+            </q-item-side>
+
+          </q-item>
+        </q-transition>
+      </q-list>
+
+
+      <!-- Time Modal -->
+      <q-modal ref="timeModal" position="bottom" :content-css="{padding: '20px'}">
+        <p>Clock</p>
+        <q-btn color="green" @click="$refs.timeModal.close()">Close</q-btn>
+      </q-modal>
+
+      <!-- Calendar Modal -->
+      <q-modal ref="calendarModal" minimized position="left" :content-css="{padding: '50px', width: '75%'}">
+        <!-- Calendar -->
+        <q-datetime color="secondary" v-model="date" type="datetime" float-label="Date and Time" />
+        <q-btn color="green" @click="setDate">Close</q-btn>
+      </q-modal>
+
+      <!-- Edit Item Modal -->
+      <q-modal ref="editItemModal" minimized position="right" :content-css="{padding: '25px', width: '100%'}">
+        <!-- Textarea -->
+        <q-input v-model="itemEdit" float-label="Edit Item" ref="edit" @keyup.enter="applyEdit" />
+        <q-btn color="green" @click="applyEdit">Close</q-btn>
+        <q-btn color="orange" @click="cancelEdit">Cancel</q-btn>
+      </q-modal>
+
+      <!-- Memo Modal -->
+      <q-modal ref="memoModal" minimized :content-css="{padding: '25px'}">
+        <!-- Textarea -->
+        <q-input v-model="memo" type="textarea" float-label="Memo" :max-height="100" :min-rows="7" />
+        <q-btn color="yellow-8" @click="saveMemo">Save</q-btn>
+        <q-btn color="secondary" @click="$refs.memoModal.close()">Close</q-btn>
+      </q-modal>
+
+
+      <!-- Fixed Floating Point Button -->
+      <q-fixed-position corner="bottom-right" :offset="[18, 18]">
+        <q-fab color="secondary" glossy icon="keyboard_arrow_left" direction="left" ref="fab">
+          <q-fab-action color="secondary" icon="alarm" @click="showTime" title="Clock" />
+          <q-fab-action color="secondary" icon="note" @click="openMemo()" title="Memo" />
+        </q-fab>
+      </q-fixed-position>
     </div>
-
-    <!-- Input Field -->
-    <div class="layout-padding" style="margin-top: 25px;">
-      <q-input v-model="item.label" float-label="Add an Item" clearable @keyup.enter="addItem" :error="isError" @blur="reset" />
-    </div>
-
-    <!-- Expandable Button -->
-    <q-fab class="fixed" style="right: 18px; top: 120px;" color="secondary" glossy icon="keyboard_arrow_left" direction="left">
-      <q-fab-action color="secondary" icon="alarm" @click="showTime" title="Clock" />
-      <q-fab-action color="secondary" icon="note" @click="openMemo()" title="Memo" />
-    </q-fab>
-
-
-    <!-- Items List -->
-    <q-list no-border>
-      <q-list-header>My List:</q-list-header>
-
-      <q-transition appear group enter="slideInRight" leave="slideOutLeft">
-
-        <q-item v-for="(item, index) in items" :key="index" @click="toggleCompleted(index)" :class="{striped: isOdd(index)}">
-          <!-- <q-item-side avatar="statics/boy-avatar.png" /> -->
-          <q-item-side>
-            <q-checkbox v-model="item.completed" @click.native="saveList" />
-          </q-item-side>
-          <q-item-main :label="item.label" />
-
-          <!-- <q-item-side right icon="close" color="primary" @click.stop="removeItem(index)" /> -->
-
-          <q-item-side right icon="more_vert" @click="selectItem(index)">
-            <q-popover ref="popover">
-              <q-list link separator>
-                <q-item @click="removeItem(index)">
-                  <q-item-main label="Delete" />
-                </q-item>
-                <q-item @click="editItem(index)">
-                  <q-item-main label="Edit" />
-                </q-item>
-                <q-item @click="setReminder(index)">
-                  <q-item-main label="Reminder" />
-                </q-item>
-              </q-list>
-            </q-popover>
-          </q-item-side>
-
-        </q-item>
-      </q-transition>
-    </q-list>
-
-
-    <!-- Time Modal -->
-    <q-modal ref="timeModal" position="bottom" :content-css="{padding: '20px'}">
-      <p>Clock</p>
-      <q-btn color="green" @click="$refs.timeModal.close()">Close</q-btn>
-    </q-modal>
-
-    <!-- Calendar Modal -->
-    <q-modal ref="calendarModal" minimized position="left" :content-css="{padding: '50px', width: '75%'}">
-      <!-- Calendar -->
-      <q-datetime color="secondary" v-model="date" type="datetime" float-label="Date and Time" />
-      <q-btn color="green" @click="setDate">Close</q-btn>
-    </q-modal>
-
-    <!-- Edit Item Modal -->
-    <q-modal ref="editItemModal" minimized position="right" :content-css="{padding: '25px', width: '100%'}">
-      <!-- Textarea -->
-      <q-input v-model="itemEdit" float-label="Edit Item" ref="edit" @keyup.enter="applyEdit" />
-      <q-btn color="green" @click="applyEdit">Close</q-btn>
-      <q-btn color="orange" @click="cancelEdit">Cancel</q-btn>
-    </q-modal>
-
-    <!-- Memo Modal -->
-    <q-modal ref="memoModal" minimized :content-css="{padding: '25px'}">
-      <!-- Textarea -->
-      <q-input v-model="memo" type="textarea" float-label="Memo" :max-height="100" :min-rows="10" />
-      <q-btn color="yellow-8" @click="saveMemo">Save</q-btn>
-      <q-btn color="secondary" @click="$refs.memoModal.close()">Close</q-btn>
-    </q-modal>
-
-
-  </div>
+  <!-- </q-pull-to-refresh> -->
 </template>
 
 <script>
-  import { QInput, QList, QItem, QItemSide, QItemMain, QPopover, QChip, QItemTile, QTransition, QCheckbox, QListHeader, QSideLink, QBtn, QIcon, QFab, QFabAction, QModal, QDatetime } from 'quasar'
+  import { QInput, QList, QItem, QItemSide, QItemMain, QPopover, QChip, QItemTile, QTransition, QCheckbox, QListHeader, QSideLink, QBtn, QIcon, QFab, QFabAction, QModal, QDatetime, QPullToRefresh, QFixedPosition } from 'quasar'
 
   export default {
     components: {
-      QInput, QList, QItem, QItemSide, QItemMain, QPopover, QChip, QItemTile, QTransition, QCheckbox, QListHeader, QSideLink, QBtn, QIcon, QFab, QFabAction, QModal, QDatetime
+      QInput, QList, QItem, QItemSide, QItemMain, QPopover, QChip, QItemTile, QTransition, QCheckbox, QListHeader, QSideLink, QBtn, QIcon, QFab, QFabAction, QModal, QDatetime, QPullToRefresh, QFixedPosition
     },
     data: () => ({
       item: { label: '', reminder: '', notes: '', completed: false },
@@ -228,6 +231,13 @@
         this.$nextTick(() => {
           this.$refs.timeModal.open()
         })
+      },
+      refresh (done) {
+        setTimeout(() => {
+          done()
+          this.getList()
+        }, 1000)
+        console.log('refreshing!')
       }
     },
     mounted () {

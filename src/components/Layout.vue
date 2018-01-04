@@ -1,6 +1,6 @@
 <template>
   <div>
-    <q-layout ref="layout" view="hHr LpR lFf" :right-breakpoint="1100">
+    <q-layout ref="layout" view="lHh lpR fFr" :right-breakpoint="1100">
       <!-- Header -->
       <q-toolbar slot="header">
         <!-- <q-btn flat @click="$refs.layout.toggleLeft()">
