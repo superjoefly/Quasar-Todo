@@ -301,12 +301,12 @@
       },
       // List item transitions
       beforeEnter (el) {
-        el.style.opacity = 0
+        el.style.visibility = 'hidden'
       },
       enter (el, done) {
         var delay = el.dataset.index * 150
         setTimeout(function () {
-          el.style.opacity = 1
+          el.style.visibility = 'visible'
           el.classList.add('animated', 'bounceInRight')
         }, delay)
       },
