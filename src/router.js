@@ -26,9 +26,6 @@ export default new VueRouter({
 
   routes: [
     { path: '/', component: load('List') },
-    { path: '/incomplete', component: load('Incomplete') },
-    { path: '/complete', component: load('Complete') },
-
     // Always leave this last one
     { path: '*', component: load('Error404') } // Not found
   ]
