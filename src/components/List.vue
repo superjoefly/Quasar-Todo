@@ -3,17 +3,17 @@
     <div class="container layout-padding">
       <!-- Buttons -->
       <div class="row justify-center">
-        <q-btn color="secondary" glossy @click="showAll">
+        <q-btn color="secondary" glossy @click="itemView = 'all'">
           <q-icon name="list" />
           &nbsp;
           <span class="gt-sm">All Items</span>
         </q-btn>
-        <q-btn color="secondary" glossy @click="showCompleted">
+        <q-btn color="secondary" glossy @click="itemView = 'completed'">
           <q-icon name="done_all" />
           &nbsp;
           <span class="gt-sm">Completed</span>
         </q-btn>
-        <q-btn color="secondary" glossy @click="showIncomplete">
+        <q-btn color="secondary" glossy @click="itemView = 'incomplete'">
           <q-icon name="error_outline" />
           &nbsp;
           <span class="gt-sm">Incomplete</span>
@@ -25,14 +25,14 @@
         <q-input v-model="item.label" float-label="Add an Item..." clearable @keyup.enter="addItem" :error="isError" @blur="resetItem"></q-input>
       </div>
 
-      <!-- User List -->
+      <!-- Master List -->
       <q-list no-border>
-        <q-list-header>My List:</q-list-header>
+        <q-list-header>All Items:</q-list-header>
         <transition-group @before-enter="beforeEnter" @enter="enter" @leave="leave">
-          <q-item v-for="(item, index) in masterList" :key="index" @click="toggleCompleted(index)" :class="{striped: isOdd(index)}" :data-index="index">
+          <q-item v-for="(item, index) in computedItems" :key="index" @click="toggleCompleted(index)" :class="{striped: isOdd(index)}" :data-index="index">
 
             <q-item-side>
-              <q-checkbox v-model="item.completed" @click.native="saveList"></q-checkbox>
+              <q-checkbox v-model="item.completed" @click.native="saveList" />
             </q-item-side>
             <q-item-main :label="item.label" />
 
@@ -56,17 +56,10 @@
                 </q-list>
               </q-popover>
             </q-item-side>
-
           </q-item>
         </transition-group>
       </q-list>
 
-      <!-- Calendar Modal -->
-      <q-modal ref="calendarModal" minimized position="left" :content-css="{padding: '50px', width: '75%'}">
-        <!-- Calendar -->
-        <q-datetime color="secondary" v-model="date" type="datetime" float-label="Set Reminer" />
-        <q-btn color="green" @click="setDate">Close</q-btn>
-      </q-modal>
 
       <!-- Edit Item Modal -->
       <q-modal ref="editItemModal" minimized position="right" :content-css="{padding: '25px', width: '100%'}" class="blue-backdrop">
@@ -75,13 +68,20 @@
         <q-btn color="green" @click="saveEdit">Save</q-btn>
       </q-modal>
 
+      <!-- Calendar Modal -->
+      <q-modal ref="calendarModal" minimized position="left" :content-css="{padding: '50px', width: '75%'}">
+        <!-- Calendar -->
+        <q-datetime color="secondary" v-model="date" type="datetime" float-label="Set Reminer" />
+        <q-btn color="green" @click="setDate">Save</q-btn>
+      </q-modal>
+
+
       <!-- Item Notes Modal -->
       <q-modal ref="notesModal" minimized :content-css="{padding: '25px'}" class="yellow-backdrop">
         <!-- Textarea -->
         <q-input v-model="selectedItem.notes" type="textarea" :float-label="selectedItem.label" :max-height="100" :min-rows="7" ref="notes" />
         <q-btn color="yellow-8" @click="saveNotes">Save</q-btn>
       </q-modal>
-
 
     </div>
   </q-pull-to-refresh>
@@ -95,66 +95,128 @@ export default {
   components: {
     QInput, QList, QItem, QItemSide, QItemMain, QPopover, QChip, QItemTile, QTransition, QCheckbox, QListHeader, QSideLink, QBtn, QIcon, QFab, QFabAction, QModal, QDatetime, QPullToRefresh, QFixedPosition
   },
-  data: () => ({
-    item: { label: '', reminder: '', notes: '', completed: false, starred: false },
-    isError: false,
-    masterList: [],
-    date: new Date(),
-    selectedItem: {}
-  }),
+  data () {
+    return {
+      item: { label: '', reminder: '', notes: '', completed: false, starred: false },
+      masterList: [],
+      isError: false,
+      date: new Date(),
+      selectedItem: {},
+      itemView: 'all'
+    }
+  },
   computed: {
     itemReminder () {
       return this.selectedItem.reminder ? this.selectedItem.reminder : this.date
+    },
+    computedItems () {
+      let item = this.itemView
+      if (item === 'all') {
+        return this.masterList
+      }
+      else if (item === 'completed') {
+        return this.masterList.filter(function(item) {
+          return item.completed
+        })
+      }
+      else if (item === 'incomplete') {
+        return !item.completed
+      }
+      else {
+        return
+      }
+    },
+    savedList () {
+      return JSON.parse(localStorage.getItem('q-saved-list'))
     }
   },
   methods: {
     getList () {
       console.log('Getting List...')
+      if (this.savedList) {
+        this.masterList = this.savedList
+      }
+      else {
+        return
+      }
     },
     addItem () {
       console.log('Add Item!')
+      if (this.item.label === '') {
+        this.isError = true
+      }
+      else {
+        this.masterList.push(this.item)
+        this.saveList()
+        this.resetItem()
+      }
     },
     resetItem () {
       console.log('Reset Item!')
+      this.item = { label: '', reminder: '', notes: '', completed: false, starred: false }
+      this.isError = false
     },
     saveList () {
       console.log('Saving!')
+      localStorage.setItem('q-saved-list', JSON.stringify(this.masterList))
     },
     selectItem (index) {
       console.log('Item Selected!')
+      this.selectedItem = this.masterList[index]
+      console.log(this.selectedItem)
+      if (this.selectedItem.reminder) {
+        this.date = this.selectedItem.reminder
+      }
+      else {
+        this.date = new Date()
+      }
+      console.log(this.selectedItem)
     },
     removeItem (index) {
       console.log('Remove Item!')
+      this.masterList.splice(index, 1)
+      this.saveList()
     },
     editItem (index) {
       console.log('Open Item Edit Modal!')
-    },
-    openReminder (index) {
-      console.log('Open Reminder Modal!')
-    },
-    addNotes (index) {
-      console.log('Open Notes Modal!')
-    },
-    setDate () {
-      console.log('Set Date!')
+      this.$refs.editItemModal.open()
+      this.$refs.popover[index].close()
+      // Autofocus Input Field
+      this.$nextTick(() => this.$refs.edit.focus())
     },
     saveEdit () {
       console.log('Save Item Label!')
+      this.saveList()
+      this.$refs.editItemModal.close()
+    },
+    openReminder (index) {
+      console.log('Open Reminder Modal!')
+      this.$refs.calendarModal.open()
+      this.$refs.popover[index].close()
+    },
+    setDate () {
+      console.log('Set Date!')
+      this.$refs.calendarModal.close()
+      this.selectedItem.reminder = this.date
+      this.date = new Date()
+      this.saveList()
+    },
+    addNotes (index) {
+      console.log('Open Notes Modal!')
+      this.$refs.notesModal.open()
+      this.$refs.popover[index].close()
+      this.$nextTick(() => this.$refs.notes.focus())
     },
     saveNotes () {
       console.log('Save Item Notes!')
-    },
-    showAll () {
-      console.log('Show All')
-    },
-    showCompleted () {
-      console.log('Show Completed')
-    },
-    showIncomplete () {
-      console.log('Show Incomplete')
+      this.$refs.notesModal.close()
+      this.saveList()
     },
     toggleCompleted (index) {
       console.log('Toggle Completed!')
+      let clickedItem = this.masterList[index]
+      clickedItem.completed ? clickedItem.completed = false : clickedItem.completed = true
+      this.saveList()
     },
     refresh (done) {
       setTimeout(() => {
@@ -189,7 +251,7 @@ export default {
       }, delay)
     },
     isOdd (index) {
-      if (index % 2 ===0) {
+      if (index % 2 === 0) {
         return true
       }
     }
@@ -199,7 +261,6 @@ export default {
     this.getList()
   }
 }
-
 </script>
 
 <style lang="stylus" scoped>
@@ -208,9 +269,6 @@ export default {
   .container
     max-width 100%
     overflow: hidden
-
-  // .q-item-icon:hover
-  //   color $orange
 
   .q-btn
       margin 0px 10px 0px 10px

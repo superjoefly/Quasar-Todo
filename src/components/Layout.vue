@@ -15,6 +15,13 @@
         </q-btn> -->
       </q-toolbar>
 
+      <!-- <q-tabs slot="navigation">
+        <q-route-tab slot="title" icon="list" to="/" replace hide="label" label="ALL" />
+        <q-route-tab slot="title" icon="done_all" to="/completed" replace hide="label" label="COMPLETED" />
+        <q-route-tab slot="title" icon="error_outline" to="/incomplete" replace hide="label" label="INCOMPLETE" />
+      </q-tabs> -->
+
+
       <router-view />
 
       <!-- Fixed Floating Point Button -->
