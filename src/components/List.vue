@@ -26,9 +26,9 @@
       </div>
 
       <!-- Master List -->
-      <q-list no-border>
+      <!-- <q-list no-border>
         <q-list-header>All Items:</q-list-header>
-        <transition-group @before-enter="beforeEnter" @enter="enter" @leave="leave">
+        <transition-group @before-enter="beforeEnter" @enter="enter" @leave="leave" appear mode="out-in">
           <q-item v-for="(item, index) in computedItems" :key="index" @click="toggleCompleted(index)" :class="{striped: isOdd(index)}" :data-index="index">
 
             <q-item-side>
@@ -58,6 +58,42 @@
             </q-item-side>
           </q-item>
         </transition-group>
+      </q-list> -->
+
+
+      <q-list no-border>
+        <q-list-header>All Items:</q-list-header>
+        <q-transition group appear enter="fadeIn"
+        leave="bounceOutLeft">
+          <q-item v-for="(item, index) in computedItems" :key="index" @click="toggleCompleted(index)" :class="{striped: isOdd(index)}" :data-index="index">
+
+            <q-item-side>
+              <q-checkbox v-model="item.completed" @click.native="saveList" />
+            </q-item-side>
+            <q-item-main :label="item.label" />
+
+            <q-checkbox v-model="item.starred" checked-icon="star" unchecked-icon="star" @click.native="saveList" color="yellow" />
+
+            <q-item-side right icon="more_vert" @click="selectItem(index)">
+              <q-popover ref="popover">
+                <q-list link separator>
+                  <q-item @click="removeItem(index)">
+                    <q-item-main label="Delete" />
+                  </q-item>
+                  <q-item @click="editItem(index)">
+                    <q-item-main label="Edit" />
+                  </q-item>
+                  <q-item @click="openReminder(index)">
+                    <q-item-main label="Reminder" />
+                  </q-item>
+                  <q-item @click="addNotes(index)">
+                    <q-item-main label="Notes" />
+                  </q-item>
+                </q-list>
+              </q-popover>
+            </q-item-side>
+          </q-item>
+        </q-transition>
       </q-list>
 
 
@@ -83,12 +119,14 @@
         <q-btn color="yellow-8" @click="saveNotes">Save</q-btn>
       </q-modal>
 
+      <p>{{computedItems}}</p>
+
     </div>
   </q-pull-to-refresh>
 </template>
 
 <script>
-/*eslint-disable*/
+// /*eslint-disable*/
 import { QInput, QList, QItem, QItemSide, QItemMain, QPopover, QChip, QItemTile, QTransition, QCheckbox, QListHeader, QSideLink, QBtn, QIcon, QFab, QFabAction, QModal, QDatetime, QPullToRefresh, QFixedPosition, Toast } from 'quasar'
 
 export default {
@@ -110,34 +148,31 @@ export default {
       return this.selectedItem.reminder ? this.selectedItem.reminder : this.date
     },
     computedItems () {
-      let item = this.itemView
-      if (item === 'all') {
-        return this.masterList
-      }
-      else if (item === 'completed') {
-        return this.masterList.filter(function(item) {
+      let view = this.itemView
+      return this.masterList.filter(function (item) {
+        if (view === 'completed') {
           return item.completed
-        })
-      }
-      else if (item === 'incomplete') {
-        return !item.completed
-      }
-      else {
-        return
-      }
-    },
-    savedList () {
-      return JSON.parse(localStorage.getItem('q-saved-list'))
+        }
+        else if (view === 'incomplete') {
+          return !item.completed
+        }
+        else {
+          return item
+        }
+      })
     }
   },
   methods: {
+    savedList () {
+      return JSON.parse(localStorage.getItem('q-saved-list'))
+    },
     getList () {
       console.log('Getting List...')
-      if (this.savedList) {
-        this.masterList = this.savedList
+      if (this.savedList()) {
+        this.masterList = this.savedList()
       }
       else {
-        return
+        this.masterList = []
       }
     },
     addItem () {
@@ -234,29 +269,33 @@ export default {
       console.log('refreshing!')
     },
     // List item transitions
-    beforeEnter (el) {
-      el.style.opacity = 0
-    },
-    enter (el, done) {
-      var delay = el.dataset.index * 150
-      setTimeout(function () {
-        el.style.opacity = 1
-        el.classList.add('animated', 'fadeIn')
-      }, delay)
-    },
-    leave (el, done) {
-      var delay = el.dataset.index * 150
-      setTimeout(function () {
-        el.classList.add('animated', 'bounceOutLeft')
-      }, delay)
-    },
+    // beforeEnter (el) {
+    //   el.style.opacity = 0
+    // },
+    // enter (el, done) {
+    //   var delay = el.dataset.index * 150
+    //   setTimeout(function () {
+    //     el.style.opacity = 1
+    //     el.classList.add('animated', 'bounceInRight')
+    //   }, delay)
+    //   done()
+    // },
+    // leave (el, done) {
+    //   var delay = el.dataset.index * 150
+    //   setTimeout(function () {
+    //     el.classList.add('animated', 'bounceOutLeft')
+    //     el.display = 'none'
+    //   }, delay)
+    //   // done()
+    // },
     isOdd (index) {
       if (index % 2 === 0) {
         return true
       }
     }
   },
-  mounted () {
+  created () {
+    console.log('Created!')
     // localStorage.clear()
     this.getList()
   }
