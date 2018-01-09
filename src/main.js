@@ -14,6 +14,9 @@ import Vue from 'vue'
 import Quasar from 'quasar'
 import router from './router'
 
+// Event Bus
+export const EventBus = new Vue()
+
 Vue.config.productionTip = false
 Vue.use(Quasar) // Install Quasar Framework
 

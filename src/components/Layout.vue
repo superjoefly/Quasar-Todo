@@ -48,7 +48,7 @@
 
       <!-- Footer -->
       <q-toolbar slot="footer" style="padding: 0px;">
-        <q-search inverted v-model="search" style="box-shadow: none;" />
+        <q-search inverted v-model="query" style="box-shadow: none;" @input="searchItems" />
       </q-toolbar>
       <!-- <q-toolbar slot="footer">
         <q-toolbar-title>
@@ -61,13 +61,17 @@
 </template>
 
 <script>
+  /*eslint-disable*/
+  import { EventBus } from '../main.js'
+
   import { QLayout, QToolbar, QToolbarTitle, QBtn, QIcon, QTabs, QRouteTab, QList, QListHeader, QSideLink, QItemSide, QItemMain, QSearch, QFixedPosition, QFab, QFabAction, QModal, QInput } from 'quasar'
+
   export default {
     components: {
       QLayout, QToolbar, QToolbarTitle, QBtn, QIcon, QTabs, QRouteTab, QList, QListHeader, QSideLink, QItemSide, QItemMain, QSearch, QFixedPosition, QFab, QFabAction, QModal, QInput
     },
     data: () => ({
-      search: '',
+      query: '',
       memo: ''
     }),
     methods: {
@@ -83,6 +87,9 @@
         this.$nextTick(() => {
           this.$refs.timeModal.open()
         })
+      },
+      searchItems () {
+        EventBus.$emit('searching', this.query)
       }
     },
     computed: {
@@ -91,6 +98,46 @@
   }
 </script>
 
-<style lang="stylus" scoped>
+<style lang="stylus" scope>
+  ::-webkit-scrollbar
+    width 10px
 
+  ::-webkit-scrollbar-button:start
+    background-color yellow
+    height 25px
+    // border-radius 10px 10px 0 0
+
+  ::-webkit-scrollbar-button:end
+    background-color yellow
+    height 25px
+    // border-radius 0px 0px 10px 10px
+
+  // ::-webkit-scrollbar-button:horizontal:start
+  //   background-color orange
+  //   border-radius 10px 0 0 10px
+  //
+  // ::-webkit-scrollbar-button:horizontal:end
+  //   background-color orange
+  //   border-radius 0 10px 10px 0
+
+  ::-webkit-scrollbar-track
+    background-color orange
+
+  ::-webkit-scrollbar-thumb
+    background-color teal
+
+  // ::-webkit-scrollbar-thumb:horizontal
+  //   background-color lime
+
+  ::-webkit-scrollbar-corner
+    background-color purple
+
+
+  /*Unused*/
+  /*::-webkit-scrollbar-track-piece {
+    background-color: brown;
+  }*/
+  /*::-webkit-resizer {
+    background-color: red;
+  }*/
 </style>

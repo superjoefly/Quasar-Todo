@@ -28,7 +28,7 @@
       <!-- Master List -->
       <!-- <q-list no-border>
         <q-list-header>All Items:</q-list-header>
-        <transition-group @before-enter="beforeEnter" @enter="enter" @leave="leave" appear mode="out-in">
+        <transition-group @before-enter="beforeEnter" @enter="enter" @leave="leave" appear mode="out-in" :css="false">
           <q-item v-for="(item, index) in computedItems" :key="index" @click="toggleCompleted(index)" :class="{striped: isOdd(index)}" :data-index="index">
 
             <q-item-side>
@@ -61,10 +61,10 @@
       </q-list> -->
 
 
-      <q-list no-border>
+      <q-list no-border style="margin-bottom: 25px;">
         <q-list-header>All Items:</q-list-header>
         <q-transition group appear enter="fadeIn"
-        leave="bounceOutLeft">
+        leave="fadeOut">
           <q-item v-for="(item, index) in computedItems" :key="index" @click="toggleCompleted(index)" :class="{striped: isOdd(index)}" :data-index="index">
 
             <q-item-side>
@@ -97,6 +97,7 @@
       </q-list>
 
 
+
       <!-- Edit Item Modal -->
       <q-modal ref="editItemModal" minimized position="right" :content-css="{padding: '25px', width: '100%'}" class="blue-backdrop">
         <!-- Textarea -->
@@ -119,19 +120,22 @@
         <q-btn color="yellow-8" @click="saveNotes">Save</q-btn>
       </q-modal>
 
-      <p>{{computedItems}}</p>
+      <!-- <p>{{computedItems}}</p> -->
 
     </div>
   </q-pull-to-refresh>
 </template>
 
 <script>
-// /*eslint-disable*/
-import { QInput, QList, QItem, QItemSide, QItemMain, QPopover, QChip, QItemTile, QTransition, QCheckbox, QListHeader, QSideLink, QBtn, QIcon, QFab, QFabAction, QModal, QDatetime, QPullToRefresh, QFixedPosition, Toast } from 'quasar'
+/*eslint-disable*/
+
+import { EventBus } from '../main.js'
+
+import { QInput, QList, QItem, QItemSide, QItemMain, QPopover, QChip, QItemTile, QTransition, QCheckbox, QListHeader, QSideLink, QBtn, QIcon, QFab, QFabAction, QModal, QDatetime, QPullToRefresh, QFixedPosition, Toast, QSearch } from 'quasar'
 
 export default {
   components: {
-    QInput, QList, QItem, QItemSide, QItemMain, QPopover, QChip, QItemTile, QTransition, QCheckbox, QListHeader, QSideLink, QBtn, QIcon, QFab, QFabAction, QModal, QDatetime, QPullToRefresh, QFixedPosition
+    QInput, QList, QItem, QItemSide, QItemMain, QPopover, QChip, QItemTile, QTransition, QCheckbox, QListHeader, QSideLink, QBtn, QIcon, QFab, QFabAction, QModal, QDatetime, QPullToRefresh, QFixedPosition, QSearch
   },
   data () {
     return {
@@ -140,21 +144,26 @@ export default {
       isError: false,
       date: new Date(),
       selectedItem: {},
-      itemView: 'all'
+      itemView: 'all',
+      query: ''
     }
   },
   computed: {
     itemReminder () {
       return this.selectedItem.reminder ? this.selectedItem.reminder : this.date
     },
-    computedItems () {
-      let view = this.itemView
+    computedItems: function () {
+      var vm = this
+      let view = vm.itemView
       return this.masterList.filter(function (item) {
         if (view === 'completed') {
           return item.completed
         }
         else if (view === 'incomplete') {
           return !item.completed
+        }
+        else if (view === 'search') {
+          return item.label.toLowerCase().indexOf(vm.query.toLowerCase()) !== -1
         }
         else {
           return item
@@ -210,6 +219,7 @@ export default {
     removeItem (index) {
       console.log('Remove Item!')
       this.masterList.splice(index, 1)
+      this.$refs.popover[index].close()
       this.saveList()
     },
     editItem (index) {
@@ -268,7 +278,7 @@ export default {
       }, 1000)
       console.log('refreshing!')
     },
-    // List item transitions
+    // // List item transitions
     // beforeEnter (el) {
     //   el.style.opacity = 0
     // },
@@ -284,20 +294,26 @@ export default {
     //   var delay = el.dataset.index * 150
     //   setTimeout(function () {
     //     el.classList.add('animated', 'bounceOutLeft')
-    //     el.display = 'none'
+    //     done()
     //   }, delay)
-    //   // done()
     // },
     isOdd (index) {
       if (index % 2 === 0) {
         return true
       }
+    },
+    searchItems () {
+      console.log('Searching')
     }
   },
   created () {
     console.log('Created!')
     // localStorage.clear()
     this.getList()
+    EventBus.$on('searching', (query) => {
+      this.query = query
+      this.itemView = 'search'
+    })
   }
 }
 </script>
