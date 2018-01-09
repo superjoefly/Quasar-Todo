@@ -206,7 +206,7 @@ export default {
     },
     selectItem (index) {
       console.log('Item Selected!')
-      this.selectedItem = this.masterList[index]
+      this.selectedItem = this.computedItems[index]
       console.log(this.selectedItem)
       if (this.selectedItem.reminder) {
         this.date = this.selectedItem.reminder
@@ -332,8 +332,8 @@ export default {
     background-color #f5f5f5
 
   .yellow-backdrop
-    background-color rgba(255, 255, 184, .8)
+    background-color rgba(255, 255, 184, .4)
 
   .blue-backdrop
-    background-color rgba(233, 233, 255, .6)
+    background-color rgba(233, 233, 255, .4)
 </style>
