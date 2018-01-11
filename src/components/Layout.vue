@@ -42,8 +42,9 @@
 
       <!-- Time Modal -->
       <q-modal ref="timeModal" position="bottom" :content-css="{padding: '20px'}">
-        <p>Clock</p>
-        <q-btn color="green" @click="$refs.timeModal.close()">Close</q-btn>
+        <p class="date">{{ date }}</p>
+        <p class="time">{{ time }}</p>
+        <!-- <q-btn color="green" @click="$refs.timeModal.close()">Close</q-btn> -->
       </q-modal>
 
       <!-- Footer -->
@@ -72,8 +73,14 @@
     },
     data: () => ({
       query: '',
-      memo: ''
+      memo: '',
+      date: '',
+      time: '',
+      week: ['SUN', 'MON', 'TUE', 'WED', 'THU', 'FRI', 'SAT']
     }),
+    computed: {
+
+    },
     methods: {
       openMemo () {
         this.memo = localStorage.getItem('q-saved-memo')
@@ -83,17 +90,32 @@
         localStorage.setItem('q-saved-memo', this.memo)
         this.$refs.memoModal.close()
       },
+      searchItems () {
+        EventBus.$emit('searching', this.query)
+      },
       showTime () {
         this.$nextTick(() => {
           this.$refs.timeModal.open()
         })
       },
-      searchItems () {
-        EventBus.$emit('searching', this.query)
+      zeroPadding (num, digit) {
+        let zero = '';
+        for (var i = 0; i < digit; i++) {
+          zero += '0';
+        }
+        return (zero + num).slice(-digit)
+      },
+      updateTime () {
+        let currentDate = new Date()
+
+        this.time = this.zeroPadding(currentDate.getHours(), 2) + ':' + this.zeroPadding(currentDate.getMinutes(), 2) + ':' + this.zeroPadding(currentDate.getSeconds(), 2)
+
+        this.date = this.week[currentDate.getDay()] + ' ' + this.zeroPadding(currentDate.getMonth()+ 1, 2) + '-' + this.zeroPadding(currentDate.getDate(), 2) + '-' + this.zeroPadding(currentDate.getFullYear(), 4)
       }
     },
-    computed: {
-
+    mounted () {
+      let updateTime = this.updateTime
+      let timeInt = setInterval(updateTime, 1000)
     }
   }
 </script>
@@ -140,4 +162,7 @@
   /*::-webkit-resizer {
     background-color: red;
   }*/
+
+  .date, .time
+    text-align center
 </style>
