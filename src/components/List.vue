@@ -108,7 +108,7 @@
       <!-- Calendar Modal -->
       <q-modal ref="calendarModal" minimized position="left" :content-css="{padding: '50px', width: '75%'}">
         <!-- Calendar -->
-        <q-datetime color="secondary" v-model="date" type="datetime" float-label="Set Reminer" />
+        <q-datetime color="secondary" v-model="date" type="datetime" float-label="Set Reminder" />
         <q-btn color="green" @click="setDate">Save</q-btn>
       </q-modal>
 
@@ -243,6 +243,13 @@ export default {
       console.log('Set Date!')
       this.$refs.calendarModal.close()
       this.selectedItem.reminder = this.date
+      Toast.create({
+        html: `Reminder set for...`,
+        icon: 'check',
+        timeout: 3000,
+        color: 'green',
+        bgColor: '#eaffe8'
+      })
       this.date = new Date()
       this.saveList()
     },

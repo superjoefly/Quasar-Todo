@@ -41,21 +41,15 @@
       </q-modal>
 
       <!-- Time Modal -->
-      <q-modal ref="timeModal" position="bottom" :content-css="{padding: '20px'}">
+      <q-modal ref="timeModal" position="bottom" :content-css="clockStyle" class="clock">
         <p class="date">{{ date }}</p>
         <p class="time">{{ time }}</p>
-        <!-- <q-btn color="green" @click="$refs.timeModal.close()">Close</q-btn> -->
       </q-modal>
 
       <!-- Footer -->
       <q-toolbar slot="footer" style="padding: 0px;">
         <q-search inverted v-model="query" style="box-shadow: none;" @input="searchItems" />
       </q-toolbar>
-      <!-- <q-toolbar slot="footer">
-        <q-toolbar-title>
-          NewUp Developments
-        </q-toolbar-title>
-      </q-toolbar> -->
     </q-layout>
 
   </div>
@@ -76,7 +70,14 @@
       memo: '',
       date: '',
       time: '',
-      week: ['SUN', 'MON', 'TUE', 'WED', 'THU', 'FRI', 'SAT']
+      week: ['SUN', 'MON', 'TUE', 'WED', 'THU', 'FRI', 'SAT'],
+      clockStyle: {
+        paddingTop: '20px',
+        color: '#daf6ff',
+        backgroundColor: '#0f3854',
+        background: 'radial-gradient(ellipse at center, #0a2e38  0%, #000000 80%)',
+        borderRadius: '20px 20px 0 0'
+      }
     }),
     computed: {
 
@@ -165,4 +166,7 @@
 
   .date, .time
     text-align center
+    font-size larger
+    text-shadow 1px 1px 2px rgba(255, 255, 255, .5)
+    font-family: 'Saira', sans-serif;
 </style>
