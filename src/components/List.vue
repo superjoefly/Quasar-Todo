@@ -3,17 +3,17 @@
     <div class="container layout-padding">
       <!-- Buttons -->
       <div class="row justify-center">
-        <q-btn color="secondary" glossy @click="itemView = 'all'">
+        <q-btn color="secondary" glossy @click="itemView = 'all'; selection = 'A'" :class="{active: isActive('A')}">
           <q-icon name="list" />
           &nbsp;
           <span class="gt-sm">All Items</span>
         </q-btn>
-        <q-btn color="secondary" glossy @click="itemView = 'completed'">
+        <q-btn color="secondary" glossy @click="itemView = 'completed'; selection = 'B'" :class="{active: isActive('B')}">
           <q-icon name="done_all" />
           &nbsp;
           <span class="gt-sm">Completed</span>
         </q-btn>
-        <q-btn color="secondary" glossy @click="itemView = 'incomplete'">
+        <q-btn color="secondary" glossy @click="itemView = 'incomplete'; selection = 'C'" :class="{active: isActive('C')}">
           <q-icon name="error_outline" />
           &nbsp;
           <span class="gt-sm">Incomplete</span>
@@ -108,7 +108,7 @@
       <!-- Calendar Modal -->
       <q-modal ref="calendarModal" minimized position="left" :content-css="{padding: '50px', width: '75%'}">
         <!-- Calendar -->
-        <q-datetime color="secondary" v-model="date" type="datetime" float-label="Set Reminder" />
+        <q-datetime color="secondary" v-model="currentDate" type="datetime" float-label="Set Reminder" />
         <q-btn color="green" @click="setDate">Save</q-btn>
       </q-modal>
 
@@ -131,7 +131,7 @@
 
 import { EventBus } from '../main.js'
 
-import { QInput, QList, QItem, QItemSide, QItemMain, QPopover, QChip, QItemTile, QTransition, QCheckbox, QListHeader, QSideLink, QBtn, QIcon, QFab, QFabAction, QModal, QDatetime, QPullToRefresh, QFixedPosition, Toast, QSearch } from 'quasar'
+import { QInput, QList, QItem, QItemSide, QItemMain, QPopover, QChip, QItemTile, QTransition, QCheckbox, QListHeader, QSideLink, QBtn, QIcon, QFab, QFabAction, QModal, QDatetime, QPullToRefresh, QFixedPosition, Toast, QSearch, date } from 'quasar'
 
 export default {
   components: {
@@ -142,15 +142,16 @@ export default {
       item: { label: '', reminder: '', notes: '', completed: false, starred: false },
       masterList: [],
       isError: false,
-      date: new Date(),
+      currentDate: Date.now(),
       selectedItem: {},
       itemView: 'all',
-      query: ''
+      query: '',
+      selection: 'A'
     }
   },
   computed: {
     itemReminder () {
-      return this.selectedItem.reminder ? this.selectedItem.reminder : this.date
+      return this.selectedItem.reminder ? this.selectedItem.reminder : this.currentDate
     },
     computedItems: function () {
       var vm = this
@@ -209,10 +210,10 @@ export default {
       this.selectedItem = this.computedItems[index]
       console.log(this.selectedItem)
       if (this.selectedItem.reminder) {
-        this.date = this.selectedItem.reminder
+        this.currentDate = this.selectedItem.reminder
       }
       else {
-        this.date = new Date()
+        this.currentDate = new Date()
       }
       console.log(this.selectedItem)
     },
@@ -239,18 +240,26 @@ export default {
       this.$refs.calendarModal.open()
       this.$refs.popover[index].close()
     },
+    formatDate(dateSet) {
+      return date.formatDate(dateSet, 'ddd Do, YYYY @ H:mm a')
+    },
     setDate () {
       console.log('Set Date!')
       this.$refs.calendarModal.close()
-      this.selectedItem.reminder = this.date
+      this.selectedItem.reminder = this.currentDate
+
+      let formattedDate = this.formatDate(this.currentDate)
+      console.log('Hello')
+      console.log(formattedDate)
+
       Toast.create({
-        html: `Reminder set for...`,
+        html: `Reminder set for <span style="color: maroon;">${formattedDate}</span>`,
         icon: 'check',
         timeout: 3000,
         color: 'green',
         bgColor: '#eaffe8'
       })
-      this.date = new Date()
+      this.currentDate = Date.now()
       this.saveList()
     },
     addNotes (index) {
@@ -309,6 +318,9 @@ export default {
         return true
       }
     },
+    isActive (value) {
+      return this.selection === value
+    },
     searchItems () {
       console.log('Searching')
     }
@@ -343,4 +355,7 @@ export default {
 
   .blue-backdrop
     background-color rgba(233, 233, 255, .4)
+
+  .active
+    color #49f3de !important
 </style>
