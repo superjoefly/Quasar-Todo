@@ -3,17 +3,17 @@
     <div class="container layout-padding">
       <!-- Buttons -->
       <div class="row justify-center">
-        <q-btn color="secondary" glossy @click="itemView = 'all'; selection = 'A'" :class="{active: isActive('A')}">
+        <q-btn color="secondary" glossy @click="itemView = 'All'; selection = 'A'" :class="{active: isActive('A')}">
           <q-icon name="list" />
           &nbsp;
           <span class="gt-sm">All Items</span>
         </q-btn>
-        <q-btn color="secondary" glossy @click="itemView = 'completed'; selection = 'B'" :class="{active: isActive('B')}">
+        <q-btn color="secondary" glossy @click="itemView = 'Completed'; selection = 'B'" :class="{active: isActive('B')}">
           <q-icon name="done_all" />
           &nbsp;
           <span class="gt-sm">Completed</span>
         </q-btn>
-        <q-btn color="secondary" glossy @click="itemView = 'incomplete'; selection = 'C'" :class="{active: isActive('C')}">
+        <q-btn color="secondary" glossy @click="itemView = 'Incomplete'; selection = 'C'" :class="{active: isActive('C')}">
           <q-icon name="error_outline" />
           &nbsp;
           <span class="gt-sm">Incomplete</span>
@@ -62,10 +62,11 @@
 
 
       <q-list no-border style="margin-bottom: 25px;">
-        <q-list-header>All Items:</q-list-header>
+        <q-list-header>{{ itemView }}</q-list-header>
         <q-transition group appear enter="fadeIn"
         leave="fadeOut">
-          <q-item v-for="(item, index) in computedItems" :key="index" @click="toggleCompleted(index)" :class="{striped: isOdd(index)}" :data-index="index">
+          <q-item v-for="(item, index) in computedItems" :key="index" @click="toggleCompleted(index)"
+          :class="{striped: isOdd(index)}" :data-index="index">
 
             <q-item-side>
               <q-checkbox v-model="item.completed" @click.native="saveList" />
@@ -75,6 +76,7 @@
             <q-checkbox v-model="item.starred" checked-icon="star" unchecked-icon="star" @click.native="saveList" color="yellow" />
 
             <q-item-side right icon="more_vert" @click="selectItem(index)">
+
               <q-popover ref="popover">
                 <q-list link separator>
                   <q-item @click="removeItem(index)">
@@ -92,9 +94,27 @@
                 </q-list>
               </q-popover>
             </q-item-side>
+
+            <q-context-menu ref="popover">
+              <q-list link separator>
+                <q-item @click="removeItem(index)">
+                  <q-item-main label="Delete" />
+                </q-item>
+                <q-item @click="editItem(index)">
+                  <q-item-main label="Edit" />
+                </q-item>
+                <q-item @click="openReminder(index)">
+                  <q-item-main label="Reminder" />
+                </q-item>
+                <q-item @click="addNotes(index)">
+                  <q-item-main label="Notes" />
+                </q-item>
+              </q-list>
+            </q-context-menu>
           </q-item>
         </q-transition>
       </q-list>
+
 
 
 
@@ -131,11 +151,11 @@
 
 import { EventBus } from '../main.js'
 
-import { QInput, QList, QItem, QItemSide, QItemMain, QPopover, QChip, QItemTile, QTransition, QCheckbox, QListHeader, QSideLink, QBtn, QIcon, QFab, QFabAction, QModal, QDatetime, QPullToRefresh, QFixedPosition, Toast, QSearch, date } from 'quasar'
+import { QInput, QList, QItem, QItemSide, QItemMain, QPopover, QChip, QItemTile, QTransition, QCheckbox, QListHeader, QSideLink, QBtn, QIcon, QFab, QFabAction, QModal, QDatetime, QPullToRefresh, QFixedPosition, Toast, QSearch, date, QContextMenu } from 'quasar'
 
 export default {
   components: {
-    QInput, QList, QItem, QItemSide, QItemMain, QPopover, QChip, QItemTile, QTransition, QCheckbox, QListHeader, QSideLink, QBtn, QIcon, QFab, QFabAction, QModal, QDatetime, QPullToRefresh, QFixedPosition, QSearch
+    QInput, QList, QItem, QItemSide, QItemMain, QPopover, QChip, QItemTile, QTransition, QCheckbox, QListHeader, QSideLink, QBtn, QIcon, QFab, QFabAction, QModal, QDatetime, QPullToRefresh, QFixedPosition, QSearch, QContextMenu
   },
   data () {
     return {
@@ -144,7 +164,7 @@ export default {
       isError: false,
       currentDate: Date.now(),
       selectedItem: {},
-      itemView: 'all',
+      itemView: 'All',
       query: '',
       selection: 'A'
     }
@@ -157,10 +177,10 @@ export default {
       var vm = this
       let view = vm.itemView
       return this.masterList.filter(function (item) {
-        if (view === 'completed') {
+        if (view === 'Completed') {
           return item.completed
         }
-        else if (view === 'incomplete') {
+        else if (view === 'Incomplete') {
           return !item.completed
         }
         else if (view === 'search') {
@@ -208,7 +228,6 @@ export default {
     selectItem (index) {
       console.log('Item Selected!')
       this.selectedItem = this.computedItems[index]
-      console.log(this.selectedItem)
       if (this.selectedItem.reminder) {
         this.currentDate = this.selectedItem.reminder
       }
