@@ -18,6 +18,11 @@
           &nbsp;
           <span class="gt-sm">Incomplete</span>
         </q-btn>
+        <q-btn color="secondary" glossy @click="itemView = 'Starred'; selection = 'D'" :class="{active: isActive('D')}">
+          <q-icon name="star_border" />
+          &nbsp;
+          <span class="gt-sm">Starred</span>
+        </q-btn>
       </div>
 
       <!-- Input Field -->
@@ -69,9 +74,10 @@
           :class="{striped: isOdd(index)}" :data-index="index">
 
             <q-item-side>
-              <q-checkbox v-model="item.completed" @click.native="saveList" />
+              <q-checkbox v-model="item.completed" @click.native="saveList()" />
             </q-item-side>
-            <q-item-main :label="item.label" />
+
+            <q-item-main :label="item.label" :class="{strike: item.completed}" />
 
             <q-checkbox v-model="item.starred" checked-icon="star" unchecked-icon="star" @click.native="saveList" color="yellow" />
 
@@ -183,6 +189,9 @@ export default {
         else if (view === 'Incomplete') {
           return !item.completed
         }
+        else if (view === 'Starred') {
+          return item.starred
+        }
         else if (view === 'search') {
           return item.label.toLowerCase().indexOf(vm.query.toLowerCase()) !== -1
         }
@@ -259,7 +268,7 @@ export default {
       this.$refs.calendarModal.open()
       this.$refs.popover[index].close()
     },
-    formatDate(dateSet) {
+    formatDate (dateSet) {
       return date.formatDate(dateSet, 'ddd Do, YYYY @ H:mm a')
     },
     setDate () {
@@ -333,11 +342,11 @@ export default {
     //   }, delay)
     // },
     isOdd (index) {
-      if (index % 2 === 0) {
-        return true
-      }
+      // Returns true if index / 2 = 0
+      return index % 2 === 0
     },
     isActive (value) {
+      // Returns true selection and value are equal
       return this.selection === value
     },
     searchItems () {
@@ -376,5 +385,8 @@ export default {
     background-color rgba(233, 233, 255, .4)
 
   .active
-    color #49f3de !important
+    color #FFFFA1 !important
+
+  .strike
+    text-decoration: line-through
 </style>
