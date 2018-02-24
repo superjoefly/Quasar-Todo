@@ -94,13 +94,19 @@
         <q-btn color="green" @click="saveEdit">Save</q-btn>
       </q-modal>
 
+      <q-modal ref="calendarModal" minimized position="left" :content-css="{padding: '50px', width: 'auto'}">
+        <!-- Calendar -->
+        <q-inline-datetime color="secondary" v-model="currentDate" type="datetime" @click.native="setDate" />
+      </q-modal>
+
 
       <!-- Calendar Modal -->
-      <q-modal ref="calendarModal" minimized position="left" :content-css="{padding: '50px', width: '75%'}">
+      <!-- <q-modal ref="calendarModal" minimized position="left" :content-css="{padding: '50px', width: '75%'}"> -->
         <!-- Calendar -->
-        <q-datetime color="secondary" v-model="currentDate" type="datetime" float-label="Set Reminder" />
+
+        <!-- <q-datetime color="secondary" v-model="currentDate" type="datetime" float-label="Set Reminder" />
         <q-btn color="green" @click="setDate">Save</q-btn>
-      </q-modal>
+      </q-modal> -->
 
 
       <!-- Item Notes Modal -->
@@ -119,11 +125,11 @@
 
 import { EventBus } from '../main.js'
 
-import { QInput, QList, QItem, QItemSide, QItemMain, QPopover, QChip, QItemTile, QTransition, QCheckbox, QListHeader, QSideLink, QBtn, QIcon, QFab, QFabAction, QModal, QDatetime, QPullToRefresh, QFixedPosition, Toast, QSearch, date, QContextMenu } from 'quasar'
+import { QInput, QList, QItem, QItemSide, QItemMain, QPopover, QChip, QItemTile, QTransition, QCheckbox, QListHeader, QSideLink, QBtn, QIcon, QFab, QFabAction, QModal, QPullToRefresh, QFixedPosition, Toast, QSearch, date, QContextMenu, QInlineDatetime } from 'quasar'
 
 export default {
   components: {
-    QInput, QList, QItem, QItemSide, QItemMain, QPopover, QChip, QItemTile, QTransition, QCheckbox, QListHeader, QSideLink, QBtn, QIcon, QFab, QFabAction, QModal, QDatetime, QPullToRefresh, QFixedPosition, QSearch, QContextMenu
+    QInput, QList, QItem, QItemSide, QItemMain, QPopover, QChip, QItemTile, QTransition, QCheckbox, QListHeader, QSideLink, QBtn, QIcon, QFab, QFabAction, QModal, QPullToRefresh, QFixedPosition, QSearch, QContextMenu, QInlineDatetime
   },
   data () {
     return {
@@ -230,10 +236,10 @@ export default {
       let formattedDate = this.formatDate(this.currentDate)
 
       Toast.create({
-        html: `Reminder set for <span style="color: maroon;">${formattedDate}</span>`,
+        html: `Reminder set for <span style="color: teal;">${formattedDate}</span>`,
         icon: 'check',
         timeout: 3000,
-        color: 'green',
+        color: 'bg-secondary',
         bgColor: '#eaffe8'
       })
       this.currentDate = Date.now()
