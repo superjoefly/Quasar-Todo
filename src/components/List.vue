@@ -30,41 +30,6 @@
         <q-input v-model="item.label" float-label="Add an Item..." clearable @keyup.enter="addItem" :error="isError" @blur="resetItem"></q-input>
       </div>
 
-      <!-- Master List -->
-      <!-- <q-list no-border>
-        <q-list-header>All Items:</q-list-header>
-        <transition-group @before-enter="beforeEnter" @enter="enter" @leave="leave" appear mode="out-in" :css="false">
-          <q-item v-for="(item, index) in computedItems" :key="index" @click="toggleCompleted(index)" :class="{striped: isOdd(index)}" :data-index="index">
-
-            <q-item-side>
-              <q-checkbox v-model="item.completed" @click.native="saveList" />
-            </q-item-side>
-            <q-item-main :label="item.label" />
-
-            <q-checkbox v-model="item.starred" checked-icon="star" unchecked-icon="star" @click.native="saveList" color="yellow" />
-
-            <q-item-side right icon="more_vert" @click="selectItem(index)">
-              <q-popover ref="popover">
-                <q-list link separator>
-                  <q-item @click="removeItem(index)">
-                    <q-item-main label="Delete" />
-                  </q-item>
-                  <q-item @click="editItem(index)">
-                    <q-item-main label="Edit" />
-                  </q-item>
-                  <q-item @click="openReminder(index)">
-                    <q-item-main label="Reminder" />
-                  </q-item>
-                  <q-item @click="addNotes(index)">
-                    <q-item-main label="Notes" />
-                  </q-item>
-                </q-list>
-              </q-popover>
-            </q-item-side>
-          </q-item>
-        </transition-group>
-      </q-list> -->
-
 
       <q-list no-border style="margin-bottom: 25px;">
         <q-list-header>{{ itemView }}</q-list-header>
@@ -122,14 +87,13 @@
       </q-list>
 
 
-
-
       <!-- Edit Item Modal -->
       <q-modal ref="editItemModal" minimized position="right" :content-css="{padding: '25px', width: '100%'}" class="blue-backdrop">
         <!-- Textarea -->
         <q-input v-model="selectedItem.label" float-label="Edit Item" ref="edit" @keyup.enter="saveEdit" />
         <q-btn color="green" @click="saveEdit">Save</q-btn>
       </q-modal>
+
 
       <!-- Calendar Modal -->
       <q-modal ref="calendarModal" minimized position="left" :content-css="{padding: '50px', width: '75%'}">
@@ -145,8 +109,6 @@
         <q-input v-model="selectedItem.notes" type="textarea" :float-label="selectedItem.label" :max-height="100" :min-rows="7" ref="notes" />
         <q-btn color="yellow-8" @click="saveNotes">Save</q-btn>
       </q-modal>
-
-      <!-- <p>{{computedItems}}</p> -->
 
     </div>
   </q-pull-to-refresh>
@@ -206,7 +168,6 @@ export default {
       return JSON.parse(localStorage.getItem('q-saved-list'))
     },
     getList () {
-      console.log('Getting List...')
       if (this.savedList()) {
         this.masterList = this.savedList()
       }
@@ -215,7 +176,6 @@ export default {
       }
     },
     addItem () {
-      console.log('Add Item!')
       if (this.item.label === '') {
         this.isError = true
       }
@@ -226,16 +186,13 @@ export default {
       }
     },
     resetItem () {
-      console.log('Reset Item!')
       this.item = { label: '', reminder: '', notes: '', completed: false, starred: false }
       this.isError = false
     },
     saveList () {
-      console.log('Saving!')
       localStorage.setItem('q-saved-list', JSON.stringify(this.masterList))
     },
     selectItem (index) {
-      console.log('Item Selected!')
       this.selectedItem = this.computedItems[index]
       if (this.selectedItem.reminder) {
         this.currentDate = this.selectedItem.reminder
@@ -243,28 +200,23 @@ export default {
       else {
         this.currentDate = new Date()
       }
-      console.log(this.selectedItem)
     },
     removeItem (index) {
-      console.log('Remove Item!')
       this.masterList.splice(index, 1)
       this.$refs.popover[index].close()
       this.saveList()
     },
     editItem (index) {
-      console.log('Open Item Edit Modal!')
       this.$refs.editItemModal.open()
       this.$refs.popover[index].close()
       // Autofocus Input Field
       this.$nextTick(() => this.$refs.edit.focus())
     },
     saveEdit () {
-      console.log('Save Item Label!')
       this.saveList()
       this.$refs.editItemModal.close()
     },
     openReminder (index) {
-      console.log('Open Reminder Modal!')
       this.$refs.calendarModal.open()
       this.$refs.popover[index].close()
     },
@@ -272,13 +224,10 @@ export default {
       return date.formatDate(dateSet, 'ddd Do, YYYY @ H:mm a')
     },
     setDate () {
-      console.log('Set Date!')
       this.$refs.calendarModal.close()
       this.selectedItem.reminder = this.currentDate
 
       let formattedDate = this.formatDate(this.currentDate)
-      console.log('Hello')
-      console.log(formattedDate)
 
       Toast.create({
         html: `Reminder set for <span style="color: maroon;">${formattedDate}</span>`,
@@ -291,18 +240,15 @@ export default {
       this.saveList()
     },
     addNotes (index) {
-      console.log('Open Notes Modal!')
       this.$refs.notesModal.open()
       this.$refs.popover[index].close()
       this.$nextTick(() => this.$refs.notes.focus())
     },
     saveNotes () {
-      console.log('Save Item Notes!')
       this.$refs.notesModal.close()
       this.saveList()
     },
     toggleCompleted (index) {
-      console.log('Toggle Completed!')
       let clickedItem = this.masterList[index]
       clickedItem.completed ? clickedItem.completed = false : clickedItem.completed = true
       this.saveList()
@@ -320,41 +266,19 @@ export default {
           bgColor: '#eaffe8'
         })
       }, 1000)
-      console.log('refreshing!')
     },
-    // // List item transitions
-    // beforeEnter (el) {
-    //   el.style.opacity = 0
-    // },
-    // enter (el, done) {
-    //   var delay = el.dataset.index * 150
-    //   setTimeout(function () {
-    //     el.style.opacity = 1
-    //     el.classList.add('animated', 'bounceInRight')
-    //   }, delay)
-    //   done()
-    // },
-    // leave (el, done) {
-    //   var delay = el.dataset.index * 150
-    //   setTimeout(function () {
-    //     el.classList.add('animated', 'bounceOutLeft')
-    //     done()
-    //   }, delay)
-    // },
     isOdd (index) {
       // Returns true if index / 2 = 0
       return index % 2 === 0
     },
     isActive (value) {
-      // Returns true selection and value are equal
+      // Returns true when selection and value are equal
       return this.selection === value
     },
     searchItems () {
-      console.log('Searching')
     }
   },
   created () {
-    console.log('Created!')
     // localStorage.clear()
     this.getList()
     EventBus.$on('searching', (query) => {
