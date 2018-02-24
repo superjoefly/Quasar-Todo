@@ -3,23 +3,11 @@
     <q-layout ref="layout" view="lHh lpR fFr" :right-breakpoint="1100">
       <!-- Header -->
       <q-toolbar slot="header">
-        <!-- <q-btn flat @click="$refs.layout.toggleLeft()">
-          <q-icon name="menu" />
-        </q-btn> -->
         <q-toolbar-title>
           Quasar Todo
           <span slot="subtitle">NewUp Developments</span>
         </q-toolbar-title>
-        <!-- <q-btn flat @click="$refs.layout.toggleRight()">
-          <q-icon name="menu" />
-        </q-btn> -->
       </q-toolbar>
-
-      <!-- <q-tabs slot="navigation">
-        <q-route-tab slot="title" icon="list" to="/" replace hide="label" label="ALL" />
-        <q-route-tab slot="title" icon="done_all" to="/completed" replace hide="label" label="COMPLETED" />
-        <q-route-tab slot="title" icon="error_outline" to="/incomplete" replace hide="label" label="INCOMPLETE" />
-      </q-tabs> -->
 
 
       <router-view />
@@ -128,20 +116,10 @@
   ::-webkit-scrollbar-button:start
     background-color yellow
     height 25px
-    // border-radius 10px 10px 0 0
 
   ::-webkit-scrollbar-button:end
     background-color yellow
     height 25px
-    // border-radius 0px 0px 10px 10px
-
-  // ::-webkit-scrollbar-button:horizontal:start
-  //   background-color orange
-  //   border-radius 10px 0 0 10px
-  //
-  // ::-webkit-scrollbar-button:horizontal:end
-  //   background-color orange
-  //   border-radius 0 10px 10px 0
 
   ::-webkit-scrollbar-track
     background-color orange
@@ -149,20 +127,8 @@
   ::-webkit-scrollbar-thumb
     background-color teal
 
-  // ::-webkit-scrollbar-thumb:horizontal
-  //   background-color lime
-
   ::-webkit-scrollbar-corner
     background-color purple
-
-
-  /*Unused*/
-  /*::-webkit-scrollbar-track-piece {
-    background-color: brown;
-  }*/
-  /*::-webkit-resizer {
-    background-color: red;
-  }*/
 
   .date, .time
     text-align center
