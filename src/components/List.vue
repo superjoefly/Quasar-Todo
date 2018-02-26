@@ -123,6 +123,7 @@
 <script>
 /*eslint-disable*/
 
+
 import { EventBus } from '../main.js'
 
 import { QInput, QList, QItem, QItemSide, QItemMain, QPopover, QChip, QItemTile, QTransition, QCheckbox, QListHeader, QSideLink, QBtn, QIcon, QFab, QFabAction, QModal, QPullToRefresh, QFixedPosition, Toast, QSearch, date, QContextMenu, QInlineDatetime } from 'quasar'
@@ -170,6 +171,13 @@ export default {
     }
   },
   methods: {
+    // onDeviceReady() {
+    //     // console.log(navigator.notification);
+    //
+    //     console.log("Hello")
+    //
+    //     // navigator.notification.alert("The time is now...", alertCallback, [title], [buttonName])
+    // },
     savedList () {
       return JSON.parse(localStorage.getItem('q-saved-list'))
     },
@@ -281,16 +289,34 @@ export default {
       // Returns true when selection and value are equal
       return this.selection === value
     },
-    searchItems () {
+    sayHi() {
+      console.log("Hello")
+    },
+    alertCallback () {
+      this.getList()
+    },
+    showNotification () {
+      cordova.plugins.notification.local.schedule({
+        title: 'Well, hello there!',
+        text: 'That was easy!',
+        foreground: true
+      })
     }
   },
   created () {
+    // Register the plugin:
+    document.addEventListener("deviceready", this.showNotification, false);
+
     // localStorage.clear()
     this.getList()
     EventBus.$on('searching', (query) => {
       this.query = query
       this.itemView = 'search'
     })
+  },
+  beforeDestroy () {
+    // Remove the plugin:
+    document.removeEventListener('deviceready', this.onDeviceReady, false)
   }
 }
 </script>
