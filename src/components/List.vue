@@ -304,10 +304,9 @@ export default {
     }
   },
   created () {
-    // Register the plugin:
+    // Register the event:
     document.addEventListener("deviceready", this.showNotification, false);
 
-    // localStorage.clear()
     this.getList()
     EventBus.$on('searching', (query) => {
       this.query = query
@@ -315,8 +314,8 @@ export default {
     })
   },
   beforeDestroy () {
-    // Remove the plugin:
-    document.removeEventListener('deviceready', this.onDeviceReady, false)
+    // Remove eventListener:
+    document.removeEventListener('deviceready', this.showNotification, false)
   }
 }
 </script>
