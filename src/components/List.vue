@@ -295,27 +295,85 @@ export default {
     alertCallback () {
       this.getList()
     },
-    showNotification () {
+    // Check reminders and notify if necessary:
+    checkReminders () {
+      // Loop through item dates
+
+      // if item date is within 1 day
+
+      // notify
+    },
+    test () {
+      let vm = this
+      this.masterList.forEach(function(item) {
+        // If the item has a reminder:
+        if (item.reminder) {
+          // Convert reminder to milliseconds:
+          let myReminder = new Date(item.reminder)
+          // Get difference in milliseconds:
+          let diff = myReminder - vm.currentDate
+          // If difference is less than one day:
+          let day = 86400000
+          let limit = day - 3600000
+          if (day > diff < limit) {
+            vm.showNotification(item)
+          }
+        }
+      })
+    },
+    remindMe () {
+      setInterval(function() {
+        this.checkReminders()
+      }, 1000 * 60 * 60)
+    },
+    showNotification (item) {
+      // console.log(item)
+      // console.log(this.formatDate(item.reminder))
+
+      let reminderDate = this.formatDate(item.reminder)
+      let reminderLabel = this.item.label
+
       cordova.plugins.notification.local.schedule({
-        title: 'Well, hello there!',
-        text: 'That was easy!',
+        title: `Quasar Reminder: ${reminderDate}`,
+        text: `${reminderLabel}`,
         foreground: true
       })
+    },
+    enableBackgroundMode () {
+      // If active move to foreground, otherwise enable:
+      cordova.plugins.backgroundMode.isActive() ? cordova.plugins.backgroundMode.moveToForeground() : cordova.plugins.backgroundMode.enable();
+    },
+    enterBackgroundMode () {
+      cordova.plugins.backgroundMode.moveToBackground()
+      this.remindMe()
     }
   },
   created () {
-    // Register the event:
-    document.addEventListener("deviceready", this.showNotification, false);
-
+    // Get the list:
     this.getList()
+
+    // Display search result:
     EventBus.$on('searching', (query) => {
       this.query = query
       this.itemView = 'search'
     })
+
+    // Cordova Plugins //
+    // Register Notification Event:
+    document.addEventListener("deviceready", this.showNotification, false);
+
+    // Register Background Mode Event:
+    document.addEventListener('deviceready', this.enableBackgroundMode, false);
+
+    this.test()
   },
   beforeDestroy () {
-    // Remove eventListener:
-    document.removeEventListener('deviceready', this.showNotification, false)
+    // Remove Notification Event:
+    document.removeEventListener('deviceready', this.showNotification, false);
+
+    // // Remove Background Mode Event:
+    // document.removeEventListener('deviceready', this.enableBackgroundMode, false);
+    this.enterBackgroundMode()
   }
 }
 </script>

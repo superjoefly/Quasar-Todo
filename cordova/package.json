@@ -12,16 +12,19 @@
     "dependencies": {
         "cordova-android": "^6.2.3",
         "cordova-plugin-device": "file:node_modules/cordova-plugin-device",
-        "cordova-plugin-local-notification": "^0.8.4",
+        "cordova-plugin-local-notification": "~0.8.1",
         "cordova-plugin-splashscreen": "^5.0.2",
         "cordova-plugin-whitelist": "^1.3.3",
-        "de.appplant.cordova.plugin.local-notification": "https://github.com/katzer/cordova-plugin-local-notifications#53262c8"
+        "de.appplant.cordova.plugin.local-notification": "https://github.com/katzer/cordova-plugin-local-notifications#53262c8",
+        "cordova-plugin-background-mode": "~0.7.2"
     },
     "cordova": {
         "plugins": {
             "cordova-plugin-splashscreen": {},
             "cordova-plugin-whitelist": {},
-            "de.appplant.cordova.plugin.local-notification": {}
+            "de.appplant.cordova.plugin.local-notification": {},
+            "cordova-plugin-local-notification": {},
+            "cordova-plugin-background-mode": {}
         },
         "platforms": [
             "android"
