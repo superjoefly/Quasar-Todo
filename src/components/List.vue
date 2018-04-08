@@ -305,6 +305,7 @@ export default {
     },
     test () {
       let vm = this
+      // Loop through items in masterList:
       this.masterList.forEach(function(item) {
         // If the item has a reminder:
         if (item.reminder) {
@@ -312,15 +313,18 @@ export default {
           let myReminder = new Date(item.reminder)
           // Get difference in milliseconds:
           let diff = myReminder - vm.currentDate
-          // If difference is less than one day:
+          // 24 hours:
           let day = 86400000
+          // 23 hours:
           let limit = day - 3600000
+          // If difference is less than one day:
           if (day > diff < limit) {
             vm.showNotification(item)
           }
         }
       })
     },
+    // Check reminders every hour:
     remindMe () {
       setInterval(function() {
         this.checkReminders()
