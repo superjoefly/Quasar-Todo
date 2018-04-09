@@ -117,7 +117,6 @@
 <script>
 /*eslint-disable*/
 
-
 import { EventBus } from '../main.js'
 
 import { QInput, QList, QItem, QItemSide, QItemMain, QPopover, QChip, QItemTile, QTransition, QCheckbox, QListHeader, QSideLink, QBtn, QIcon, QFab, QFabAction, QModal, QPullToRefresh, QFixedPosition, Toast, QSearch, date, QContextMenu, QInlineDatetime } from 'quasar'
@@ -277,17 +276,15 @@ export default {
       // Returns true when selection and value are equal
       return this.selection === value
     },
-    sayHi() {
-      console.log("Hello")
-    },
     alertCallback () {
       this.getList()
     },
     // Check reminders and notify if necessary:
     checkReminders () {
+      // alert('Check Reminders')
       let vm = this
       // Loop through items in masterList:
-      this.masterList.forEach(function(item) {
+      this.masterList.forEach(function (item) {
         // If the item has a reminder:
         if (item.reminder) {
           // Convert Date:
@@ -309,19 +306,9 @@ export default {
         }
       })
     },
-    // Check reminders every hour:
-    remindMe () {
-      setInterval(function() {
-        this.checkReminders()
-      }, 1000 * 60 * 60)
-    },
     showNotification (item) {
-
       let reminderLabel = item.label
-      let reminderDate = "Due: " + this.formatDate(item.reminder)
-
-      // alert(reminderLabel)
-      // alert(reminderDate)
+      let reminderDate = 'Due: ' + this.formatDate(item.reminder)
 
       cordova.plugins.notification.local.schedule({
         title: reminderLabel,
@@ -329,14 +316,29 @@ export default {
         foreground: true
       })
     },
-    enableBackgroundMode () {
-      // If active move to foreground, otherwise enable:
-      cordova.plugins.backgroundMode.isActive() ? cordova.plugins.backgroundMode.moveToForeground() : cordova.plugins.backgroundMode.enable();
-
-      // Override back button on Android
-      cordova.plugins.backgroundMode.overrideBackButton()
-      this.remindMe()
+    testNotification (val) {
+      cordova.plugins.notification.local.schedule({
+        title: 'Hello',
+        text: val,
+        foreground: true
+      })
     },
+    enableBackgroundMode () {
+      // Enable background mode:
+      cordova.plugins.backgroundMode.enable()
+      // Override back button on Android:
+      cordova.plugins.backgroundMode.overrideBackButton()
+
+      let vm = this
+      cordova.plugins.backgroundMode.on('activate', function() {
+        // Disable optimizations:
+        cordova.plugins.backgroundMode.disableWebViewOptimizations();
+        // Check reminders every hour:
+        setInterval(function() {
+          vm.checkReminders()
+        }, 1000 * 60 * 60)
+      })
+    }
   },
   created () {
     // Get the list:
@@ -350,17 +352,17 @@ export default {
 
     // Cordova Plugins //
     // Check Reminders:
-    document.addEventListener("deviceready", this.checkReminders, false);
+    document.addEventListener('deviceready', this.checkReminders, false)
 
     // Register Background Mode Event:
-    document.addEventListener('deviceready', this.enableBackgroundMode, false);
+    document.addEventListener('deviceready', this.enableBackgroundMode, false)
   },
   beforeDestroy () {
     // Remove showNotification Event:
-    document.removeEventListener('deviceready', this.showNotification, false);
+    document.removeEventListener('deviceready', this.showNotification, false)
 
     // // Remove enableBackgroundMode Event:
-    document.removeEventListener('deviceready', this.enableBackgroundMode, false);
+    document.removeEventListener('deviceready', this.enableBackgroundMode, false)
   }
 }
 </script>
