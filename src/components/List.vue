@@ -266,7 +266,7 @@ export default {
           color: 'green',
           bgColor: '#eaffe8'
         })
-        this.test()
+        this.checkReminders()
       }, 1000)
     },
     isOdd (index) {
@@ -285,13 +285,6 @@ export default {
     },
     // Check reminders and notify if necessary:
     checkReminders () {
-      // Loop through item dates
-
-      // if item date is within 1 day
-
-      // notify
-    },
-    test () {
       let vm = this
       // Loop through items in masterList:
       this.masterList.forEach(function(item) {
@@ -301,16 +294,16 @@ export default {
           let myReminder = new Date(item.reminder)
           let currentDate = new Date()
           // Get time frame for notification:
-          let add24Hours = date.addToDate(currentDate, {hours: 24})
-          let add23Hours = date.addToDate(currentDate, {hours: 23})
+          let twentyThreeHours = date.addToDate(currentDate, {hours: 23})
+          let twentyFourHours = date.addToDate(currentDate, {hours: 24})
 
           // console.log("Current Date:", currentDate)
           // console.log("Reminder:", myReminder)
-          // console.log(add24Hours)
-          // console.log(add23Hours)
+          // console.log(twentyThreeHours)
+          // console.log(twentyFourHours)
 
-          // If the reminder is between now and
-          if (date.isBetweenDates(myReminder, add23Hours, add24Hours)) {
+          // If reminder is between 23-24 hours from now:
+          if (date.isBetweenDates(myReminder, twentyThreeHours, twentyFourHours)) {
             vm.showNotification(item)
           }
         }
@@ -323,26 +316,27 @@ export default {
       }, 1000 * 60 * 60)
     },
     showNotification (item) {
-      // console.log(item)
-      // alert(this.formatDate(item.reminder))
 
-      let reminderDate = this.formatDate(item.reminder)
       let reminderLabel = item.label
+      let reminderDate = "Due: " + this.formatDate(item.reminder)
+
+      // alert(reminderLabel)
+      // alert(reminderDate)
 
       cordova.plugins.notification.local.schedule({
-        title: `Quasar Reminder: ${reminderDate}`,
-        text: `Label: ${reminderLabel}`,
+        title: reminderLabel,
+        text: reminderDate,
         foreground: true
       })
     },
     enableBackgroundMode () {
       // If active move to foreground, otherwise enable:
       cordova.plugins.backgroundMode.isActive() ? cordova.plugins.backgroundMode.moveToForeground() : cordova.plugins.backgroundMode.enable();
-    },
-    enterBackgroundMode () {
-      cordova.plugins.backgroundMode.moveToBackground()
+
+      // Override back button on Android
+      cordova.plugins.backgroundMode.overrideBackButton()
       this.remindMe()
-    }
+    },
   },
   created () {
     // Get the list:
@@ -355,21 +349,18 @@ export default {
     })
 
     // Cordova Plugins //
-    // Register Notification Event:
-    document.addEventListener("deviceready", this.showNotification, false);
+    // Check Reminders:
+    document.addEventListener("deviceready", this.checkReminders, false);
 
     // Register Background Mode Event:
     document.addEventListener('deviceready', this.enableBackgroundMode, false);
-
-    this.test()
   },
   beforeDestroy () {
-    // Remove Notification Event:
+    // Remove showNotification Event:
     document.removeEventListener('deviceready', this.showNotification, false);
 
-    // // Remove Background Mode Event:
-    // document.removeEventListener('deviceready', this.enableBackgroundMode, false);
-    this.enterBackgroundMode()
+    // // Remove enableBackgroundMode Event:
+    document.removeEventListener('deviceready', this.enableBackgroundMode, false);
   }
 }
 </script>
