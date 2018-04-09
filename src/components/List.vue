@@ -94,19 +94,13 @@
         <q-btn color="green" @click="saveEdit">Save</q-btn>
       </q-modal>
 
-      <q-modal ref="calendarModal" minimized position="left" :content-css="{padding: '50px', width: 'auto'}">
-        <!-- Calendar -->
-        <q-inline-datetime color="secondary" v-model="currentDate" type="datetime" @click.native="setDate" />
-      </q-modal>
-
-
       <!-- Calendar Modal -->
-      <!-- <q-modal ref="calendarModal" minimized position="left" :content-css="{padding: '50px', width: '75%'}"> -->
-        <!-- Calendar -->
-
-        <!-- <q-datetime color="secondary" v-model="currentDate" type="datetime" float-label="Set Reminder" />
-        <q-btn color="green" @click="setDate">Save</q-btn>
-      </q-modal> -->
+      <q-modal ref="calendarModal" minimized position="left" :content-css="{padding: '50px', width: 'auto'}">
+        <!-- DateTime -->
+        <q-inline-datetime color="secondary" v-model="currentDate" type="datetime" />
+        <br>
+        <q-btn flat color="primary" class="full-width" @click="setDate">Save</q-btn>
+      </q-modal>
 
 
       <!-- Item Notes Modal -->
@@ -171,13 +165,6 @@ export default {
     }
   },
   methods: {
-    // onDeviceReady() {
-    //     // console.log(navigator.notification);
-    //
-    //     console.log("Hello")
-    //
-    //     // navigator.notification.alert("The time is now...", alertCallback, [title], [buttonName])
-    // },
     savedList () {
       return JSON.parse(localStorage.getItem('q-saved-list'))
     },
@@ -279,6 +266,7 @@ export default {
           color: 'green',
           bgColor: '#eaffe8'
         })
+        this.test()
       }, 1000)
     },
     isOdd (index) {
@@ -309,16 +297,20 @@ export default {
       this.masterList.forEach(function(item) {
         // If the item has a reminder:
         if (item.reminder) {
-          // Convert reminder to milliseconds:
+          // Convert Date:
           let myReminder = new Date(item.reminder)
-          // Get difference in milliseconds:
-          let diff = myReminder - vm.currentDate
-          // 24 hours:
-          let day = 86400000
-          // 23 hours:
-          let limit = day - 3600000
-          // If difference is less than one day:
-          if (day > diff < limit) {
+          let currentDate = new Date()
+          // Get time frame for notification:
+          let add24Hours = date.addToDate(currentDate, {hours: 24})
+          let add23Hours = date.addToDate(currentDate, {hours: 23})
+
+          // console.log("Current Date:", currentDate)
+          // console.log("Reminder:", myReminder)
+          // console.log(add24Hours)
+          // console.log(add23Hours)
+
+          // If the reminder is between now and
+          if (date.isBetweenDates(myReminder, add23Hours, add24Hours)) {
             vm.showNotification(item)
           }
         }
@@ -332,14 +324,14 @@ export default {
     },
     showNotification (item) {
       // console.log(item)
-      // console.log(this.formatDate(item.reminder))
+      // alert(this.formatDate(item.reminder))
 
       let reminderDate = this.formatDate(item.reminder)
-      let reminderLabel = this.item.label
+      let reminderLabel = item.label
 
       cordova.plugins.notification.local.schedule({
         title: `Quasar Reminder: ${reminderDate}`,
-        text: `${reminderLabel}`,
+        text: `Label: ${reminderLabel}`,
         foreground: true
       })
     },
