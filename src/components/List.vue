@@ -104,6 +104,7 @@
         <br><br>
         <p>How far ahead should I remind you?</p>
         <br>
+        <!-- Reminder Time Options -->
         <q-select v-model="reminderTime" :options="options" />
         <q-btn flat color="primary" class="full-width" @click="setDate">Save</q-btn>
       </q-modal>
@@ -222,7 +223,7 @@ export default {
       }
     },
     resetItem () {
-      this.item = { label: '', reminder: '', notes: '', completed: false, starred: false }
+      this.item = { label: '', due: '', reminder: '', notes: '', completed: false, starred: false, notified: false }
       this.isError = false
     },
     saveList () {
@@ -349,21 +350,13 @@ export default {
           let reminder = new Date(dueDate.getTime() - item.reminder)
           // console.log("Reminder Date:", reminder)
 
-          if (item.notified == false) {
+          if (item.notified == false && item.completed == false) {
             if (date.isBetweenDates(currentDate, reminder, dueDate)) {
               vm.showNotification(item)
               item.notified = true
               vm.saveList()
             }
           }
-          // // Get time frame for notification:
-          // let twentyThreeHours = date.addToDate(currentDate, {hours: 23})
-          // let twentyFourHours = date.addToDate(currentDate, {hours: 24})
-
-          // // If reminder is between 23-24 hours from now:
-          // if (date.isBetweenDates(myReminder, twentyThreeHours, twentyFourHours)) {
-          //   vm.showNotification(item)
-          // }
         }
       })
     },
@@ -371,29 +364,19 @@ export default {
       let reminderLabel = item.label
       let reminderDate = 'Due: ' + this.formatDate(item.due)
 
-      // console.log(reminderLabel)
-      // console.log(reminderDate)
-
       cordova.plugins.notification.local.schedule({
         title: reminderLabel,
         text: reminderDate,
         foreground: true
       })
     },
-    // testNotification (val) {
-    //   cordova.plugins.notification.local.schedule({
-    //     title: 'Hello',
-    //     text: val,
-    //     foreground: true
-    //   })
-    // },
     enableBackgroundMode () {
       // Enable background mode:
       cordova.plugins.backgroundMode.enable()
       // Override back button on Android:
       cordova.plugins.backgroundMode.overrideBackButton()
       // Configure app-running notification:
-      cordova.plugins.backgroundMode.configure({
+      cordova.plugins.backgroundMode.setDefaults({
         title: 'App running in background',
         text: 'Needed for notifications'
       })
@@ -410,7 +393,7 @@ export default {
     }
   },
   created () {
-    // Clear Local Storage:
+    // Clear Local Storage (for testing):
     // localStorage.clear()
     // Get the list:
     this.getList()
