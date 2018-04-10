@@ -94,13 +94,21 @@
         <q-btn color="green" @click="saveEdit">Save</q-btn>
       </q-modal>
 
+
+
       <!-- Calendar Modal -->
-      <q-modal ref="calendarModal" minimized position="left" :content-css="{padding: '50px', width: 'auto'}">
+      <q-modal ref="calendarModal" :content-css="{padding: '20px'}" minimized position="left" >
+        <p>When is the item due?</p>
         <!-- DateTime -->
         <q-inline-datetime color="secondary" v-model="currentDate" type="datetime" />
+        <br><br>
+        <p>How far ahead should I remind you?</p>
         <br>
+        <q-select v-model="reminderTime" :options="options" />
         <q-btn flat color="primary" class="full-width" @click="setDate">Save</q-btn>
       </q-modal>
+
+
 
 
       <!-- Item Notes Modal -->
@@ -109,6 +117,11 @@
         <q-input v-model="selectedItem.notes" type="textarea" :float-label="selectedItem.label" :max-height="100" :min-rows="7" ref="notes" />
         <q-btn color="yellow-8" @click="saveNotes">Save</q-btn>
       </q-modal>
+
+
+      <!-- Testing -->
+      <!-- <p>Current Date: {{currentDate}}</p>
+      <p>Reminder Time: {{reminderTime}}</p> -->
 
     </div>
   </q-pull-to-refresh>
@@ -119,28 +132,51 @@
 
 import { EventBus } from '../main.js'
 
-import { QInput, QList, QItem, QItemSide, QItemMain, QPopover, QChip, QItemTile, QTransition, QCheckbox, QListHeader, QSideLink, QBtn, QIcon, QFab, QFabAction, QModal, QPullToRefresh, QFixedPosition, Toast, QSearch, date, QContextMenu, QInlineDatetime } from 'quasar'
+import { QInput, QList, QItem, QItemSide, QItemMain, QPopover, QChip, QItemTile, QTransition, QCheckbox, QListHeader, QSideLink, QBtn, QIcon, QFab, QFabAction, QModal, QPullToRefresh, QFixedPosition, Toast, QSearch, date, QContextMenu, QInlineDatetime, QSelect } from 'quasar'
 
 export default {
   components: {
-    QInput, QList, QItem, QItemSide, QItemMain, QPopover, QChip, QItemTile, QTransition, QCheckbox, QListHeader, QSideLink, QBtn, QIcon, QFab, QFabAction, QModal, QPullToRefresh, QFixedPosition, QSearch, QContextMenu, QInlineDatetime
+    QInput, QList, QItem, QItemSide, QItemMain, QPopover, QChip, QItemTile, QTransition, QCheckbox, QListHeader, QSideLink, QBtn, QIcon, QFab, QFabAction, QModal, QPullToRefresh, QFixedPosition, QSearch, QContextMenu, QInlineDatetime, QSelect
   },
   data () {
     return {
-      item: { label: '', reminder: '', notes: '', completed: false, starred: false },
+      item: { label: '', due: '', reminder: '', notes: '', completed: false, starred: false, notified: false },
       masterList: [],
       isError: false,
       currentDate: Date.now(),
       selectedItem: {},
       itemView: 'All',
       query: '',
-      selection: 'A'
+      selection: 'A',
+      reminderTime: '1 Hour',
+      options: [
+        {
+          label: '30 Min',
+          value: 60000
+        },
+        {
+          label: '1 Hour',
+          value: 3600000
+        },
+        {
+          label: '6 Hour',
+          value: 21600000
+        },
+        {
+          label: '12 Hour',
+          value: 43200000
+        },
+        {
+          label: '24 Hour',
+          value: 86400000
+        }
+      ]
     }
   },
   computed: {
-    itemReminder () {
-      return this.selectedItem.reminder ? this.selectedItem.reminder : this.currentDate
-    },
+    // itemReminder () {
+    //   return this.selectedItem.due ? this.selectedItem.due : this.currentDate
+    // },
     computedItems: function () {
       var vm = this
       let view = vm.itemView
@@ -194,8 +230,9 @@ export default {
     },
     selectItem (index) {
       this.selectedItem = this.computedItems[index]
-      if (this.selectedItem.reminder) {
-        this.currentDate = this.selectedItem.reminder
+      if (this.selectedItem.due) {
+        this.currentDate = this.selectedItem.due
+        this.reminderTime = this.selectedItem.reminder
       }
       else {
         this.currentDate = new Date()
@@ -224,19 +261,31 @@ export default {
       return date.formatDate(dateSet, 'ddd Do, YYYY @ H:mm a')
     },
     setDate () {
+      // Close calendar modal:
       this.$refs.calendarModal.close()
-      this.selectedItem.reminder = this.currentDate
+      // Set current item due date to selected date:
+      this.selectedItem.due = this.currentDate
+      // Set current item reminder to selected reminder:
+      this.selectedItem.reminder = this.reminderTime
 
-      let formattedDate = this.formatDate(this.currentDate)
+      // Calculate due date:
+      let dueDate = new Date(this.currentDate).getTime()
+      let reminderDate = new Date(dueDate - this.reminderTime)
+
+      // console.log(dueDate)
+      // console.log(reminderDate)
+
+      let formattedReminder = this.formatDate(reminderDate)
 
       Toast.create({
-        html: `Reminder set for <span style="color: teal;">${formattedDate}</span>`,
+        html: `Reminder set for <span style="color: teal;">${formattedReminder}</span>`,
         icon: 'check',
         timeout: 3000,
         color: 'bg-secondary',
         bgColor: '#eaffe8'
       })
       this.currentDate = Date.now()
+      this.reminderTime = '1 Hour'
       this.saveList()
     },
     addNotes (index) {
@@ -258,6 +307,7 @@ export default {
         done()
         // this.saveList()
         this.getList()
+        this.checkReminders()
         Toast.create({
           html: 'Up To Date!',
           icon: 'check',
@@ -265,7 +315,6 @@ export default {
           color: 'green',
           bgColor: '#eaffe8'
         })
-        this.checkReminders()
       }, 1000)
     },
     isOdd (index) {
@@ -281,34 +330,49 @@ export default {
     },
     // Check reminders and notify if necessary:
     checkReminders () {
-      // alert('Check Reminders')
       let vm = this
       // Loop through items in masterList:
       this.masterList.forEach(function (item) {
         // If the item has a reminder:
-        if (item.reminder) {
-          // Convert Date:
-          let myReminder = new Date(item.reminder)
+        if (item.due) {
+          // console.log(item)
+
+          // Current Date:
           let currentDate = new Date()
-          // Get time frame for notification:
-          let twentyThreeHours = date.addToDate(currentDate, {hours: 23})
-          let twentyFourHours = date.addToDate(currentDate, {hours: 24})
+          // console.log("Current Date: ", currentDate)
 
-          // console.log("Current Date:", currentDate)
-          // console.log("Reminder:", myReminder)
-          // console.log(twentyThreeHours)
-          // console.log(twentyFourHours)
+          // Due Date:
+          let dueDate = new Date(item.due)
+          // console.log("Due Date: ", dueDate)
 
-          // If reminder is between 23-24 hours from now:
-          if (date.isBetweenDates(myReminder, twentyThreeHours, twentyFourHours)) {
-            vm.showNotification(item)
+          // Get Diff:
+          let reminder = new Date(dueDate.getTime() - item.reminder)
+          // console.log("Reminder Date:", reminder)
+
+          if (item.notified == false) {
+            if (date.isBetweenDates(currentDate, reminder, dueDate)) {
+              vm.showNotification(item)
+              item.notified = true
+              vm.saveList()
+            }
           }
+          // // Get time frame for notification:
+          // let twentyThreeHours = date.addToDate(currentDate, {hours: 23})
+          // let twentyFourHours = date.addToDate(currentDate, {hours: 24})
+
+          // // If reminder is between 23-24 hours from now:
+          // if (date.isBetweenDates(myReminder, twentyThreeHours, twentyFourHours)) {
+          //   vm.showNotification(item)
+          // }
         }
       })
     },
     showNotification (item) {
       let reminderLabel = item.label
-      let reminderDate = 'Due: ' + this.formatDate(item.reminder)
+      let reminderDate = 'Due: ' + this.formatDate(item.due)
+
+      // console.log(reminderLabel)
+      // console.log(reminderDate)
 
       cordova.plugins.notification.local.schedule({
         title: reminderLabel,
@@ -316,18 +380,23 @@ export default {
         foreground: true
       })
     },
-    testNotification (val) {
-      cordova.plugins.notification.local.schedule({
-        title: 'Hello',
-        text: val,
-        foreground: true
-      })
-    },
+    // testNotification (val) {
+    //   cordova.plugins.notification.local.schedule({
+    //     title: 'Hello',
+    //     text: val,
+    //     foreground: true
+    //   })
+    // },
     enableBackgroundMode () {
       // Enable background mode:
       cordova.plugins.backgroundMode.enable()
       // Override back button on Android:
       cordova.plugins.backgroundMode.overrideBackButton()
+      // Configure app-running notification:
+      cordova.plugins.backgroundMode.configure({
+        title: 'App running in background',
+        text: 'Needed for notifications'
+      })
 
       let vm = this
       cordova.plugins.backgroundMode.on('activate', function() {
@@ -341,6 +410,8 @@ export default {
     }
   },
   created () {
+    // Clear Local Storage:
+    // localStorage.clear()
     // Get the list:
     this.getList()
 
@@ -352,7 +423,8 @@ export default {
 
     // Cordova Plugins //
     // Check Reminders:
-    document.addEventListener('deviceready', this.checkReminders, false)
+    this.checkReminders()
+    // document.addEventListener('deviceready', this.checkReminders, false)
 
     // Register Background Mode Event:
     document.addEventListener('deviceready', this.enableBackgroundMode, false)
