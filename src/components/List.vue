@@ -32,10 +32,12 @@
 
 
       <q-list no-border style="margin-bottom: 25px;">
-        <q-list-header>{{ itemView }}</q-list-header>
+        <q-list-header>
+          {{ itemView }}
+        </q-list-header>
         <q-transition group appear enter="fadeIn"
         leave="fadeOut">
-          <q-item v-for="(item, index) in computedItems" :key="index" @click="toggleCompleted(index)"
+          <q-item v-for="(item, index) in computedItems" :key="index" @click="toggleCompleted($event, index)"
           :class="{striped: isOdd(index)}" :data-index="index">
 
             <q-item-side>
@@ -51,16 +53,19 @@
               <q-popover ref="popover">
                 <q-list link separator>
                   <q-item @click="removeItem(index)">
-                    <q-item-main label="Delete" />
+                    <q-item-main label="Delete Item" />
                   </q-item>
                   <q-item @click="editItem(index)">
-                    <q-item-main label="Edit" />
+                    <q-item-main label="Edit Item" />
                   </q-item>
                   <q-item @click="openReminder(index)">
-                    <q-item-main label="Reminder" />
+                    <q-item-main label="Set Reminder" />
                   </q-item>
                   <q-item @click="addNotes(index)">
-                    <q-item-main label="Notes" />
+                    <q-item-main label="Add Note" />
+                  </q-item>
+                  <q-item @click="clearListItems(index)">
+                    <q-item-main label="Clear Items" />
                   </q-item>
                 </q-list>
               </q-popover>
@@ -69,16 +74,19 @@
             <q-context-menu ref="popover">
               <q-list link separator>
                 <q-item @click="removeItem(index)">
-                  <q-item-main label="Delete" />
+                  <q-item-main label="Delete Item" />
                 </q-item>
                 <q-item @click="editItem(index)">
-                  <q-item-main label="Edit" />
+                  <q-item-main label="Edit Item" />
                 </q-item>
                 <q-item @click="openReminder(index)">
-                  <q-item-main label="Reminder" />
+                  <q-item-main label="Set Reminder" />
                 </q-item>
                 <q-item @click="addNotes(index)">
-                  <q-item-main label="Notes" />
+                  <q-item-main label="Add Note" />
+                </q-item>
+                <q-item @click="clearListItems(index)">
+                  <q-item-main label="Clear Items" />
                 </q-item>
               </q-list>
             </q-context-menu>
@@ -120,6 +128,14 @@
       </q-modal>
 
 
+
+      <!-- Clear Items Modal -->
+      <q-modal ref="clearItemsModal" minimized :content-css="{padding: '25px'}" class="pink-backdrop">
+        <q-option-group color="secondary" type="toggle" v-model="itemsToClear" :options="clearItemsOptions" />
+        <q-btn color="green-8" @click="clearItems" class="pull-right">Clear</q-btn>
+      </q-modal>
+
+
       <!-- Testing -->
       <!-- <p>Current Date: {{currentDate}}</p>
       <p>Reminder Time: {{reminderTime}}</p> -->
@@ -133,11 +149,11 @@
 
 import { EventBus } from '../main.js'
 
-import { QInput, QList, QItem, QItemSide, QItemMain, QPopover, QChip, QItemTile, QTransition, QCheckbox, QListHeader, QSideLink, QBtn, QIcon, QFab, QFabAction, QModal, QPullToRefresh, QFixedPosition, Toast, QSearch, date, QContextMenu, QInlineDatetime, QSelect } from 'quasar'
+import { QInput, QList, QItem, QItemSide, QItemMain, QPopover, QChip, QItemTile, QTransition, QCheckbox, QListHeader, QSideLink, QBtn, QIcon, QFab, QFabAction, QModal, QPullToRefresh, QFixedPosition, Toast, QSearch, date, QContextMenu, QInlineDatetime, QSelect, QOptionGroup } from 'quasar'
 
 export default {
   components: {
-    QInput, QList, QItem, QItemSide, QItemMain, QPopover, QChip, QItemTile, QTransition, QCheckbox, QListHeader, QSideLink, QBtn, QIcon, QFab, QFabAction, QModal, QPullToRefresh, QFixedPosition, QSearch, QContextMenu, QInlineDatetime, QSelect
+    QInput, QList, QItem, QItemSide, QItemMain, QPopover, QChip, QItemTile, QTransition, QCheckbox, QListHeader, QSideLink, QBtn, QIcon, QFab, QFabAction, QModal, QPullToRefresh, QFixedPosition, QSearch, QContextMenu, QInlineDatetime, QSelect, QOptionGroup
   },
   data () {
     return {
@@ -171,13 +187,17 @@ export default {
           label: '24 Hour',
           value: 86400000
         }
-      ]
+      ],
+      clearItemsOptions: [
+          {label: 'All', value: 'all', color: 'orange'},
+          {label: 'Completed', value: 'completed', color: 'green'},
+          {label: 'Incomplete', value: 'incomplete', color: 'red'},
+          {label: 'Starred', value: 'starred', color: 'yellow'}
+      ],
+      itemsToClear: []
     }
   },
   computed: {
-    // itemReminder () {
-    //   return this.selectedItem.due ? this.selectedItem.due : this.currentDate
-    // },
     computedItems: function () {
       var vm = this
       let view = vm.itemView
@@ -298,10 +318,50 @@ export default {
       this.$refs.notesModal.close()
       this.saveList()
     },
-    toggleCompleted (index) {
-      let clickedItem = this.masterList[index]
-      clickedItem.completed ? clickedItem.completed = false : clickedItem.completed = true
+    clearListItems (index) {
+      this.$refs.clearItemsModal.open()
+      this.$refs.popover[index].close()
+    },
+    clearItems() {
+      this.$refs.clearItemsModal.close()
+      let arrLength = this.itemsToClear.length
+      for (var i = 0; i < arrLength; i++) {
+        this.removeClearedItems(this.itemsToClear[i])
+      }
+      // Clear the items:
+      this.itemsToClear = []
+    },
+    removeClearedItems (label) {
+      let masterList = this.masterList
+      if (label == 'all') {
+        this.masterList = []
+      } else {
+        masterList.forEach(function(item, index) {
+          if (label == 'completed') {
+            if (item.completed) {
+              masterList.splice(index, 1)
+            }
+          }
+          if (label == 'incomplete') {
+            if (!item.completed) {
+              masterList.splice(index, 1)
+            }
+          }
+          if (label == 'starred') {
+            if (item.starred) {
+              masterList.splice(index, 1)
+            }
+          }
+        })
+      }
       this.saveList()
+    },
+    toggleCompleted (event, index) {
+      if (event.target.tagName == 'DIV') {
+        let clickedItem = this.masterList[index]
+        clickedItem.completed ? clickedItem.completed = false : clickedItem.completed = true
+        this.saveList()
+      }
     },
     refresh (done) {
       setTimeout(() => {
@@ -440,6 +500,9 @@ export default {
 
   .blue-backdrop
     background-color rgba(233, 233, 255, .4)
+
+  .pink-backdrop
+    background-color rgba(255, 185, 185, 0.4)
 
   .active
     color #FFFFA1 !important
